@@ -58,3 +58,6 @@ setup-database.js
 # Logs
 *.log
 logs/
+
+# Local documentation
+SUPABASE_LOCAL_SETUP.md

@@ -136,53 +136,6 @@ export default function MembershipScreen() {
             </Text>
           </View>
 
-          {/* Enhanced Benefits Section */}
-          <View className="mb-8">
-            <Text className="text-2xl font-bold text-gray-900 mb-6">Exclusive Benefits</Text>
-            <View className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <View className="space-y-5">
-                <View className="flex-row items-center">
-                  <View className="w-12 h-12 bg-blue-600 rounded-2xl items-center justify-center mr-4">
-                    <Text className="text-white text-lg">🎟️</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-gray-900 font-semibold text-base">Priority Event Access</Text>
-                    <Text className="text-gray-600 text-sm">Get first access to community events</Text>
-                  </View>
-                </View>
-
-                <View className="flex-row items-center">
-                  <View className="w-12 h-12 bg-green-600 rounded-2xl items-center justify-center mr-4">
-                    <Text className="text-white text-lg">🛠️</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-gray-900 font-semibold text-base">Premium Support</Text>
-                    <Text className="text-gray-600 text-sm">Priority assistance and services</Text>
-                  </View>
-                </View>
-
-                <View className="flex-row items-center">
-                  <View className="w-12 h-12 bg-purple-600 rounded-2xl items-center justify-center mr-4">
-                    <Text className="text-white text-lg">📧</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-gray-900 font-semibold text-base">Newsletter & Updates</Text>
-                    <Text className="text-gray-600 text-sm">Stay informed with monthly updates</Text>
-                  </View>
-                </View>
-
-                <View className="flex-row items-center">
-                  <View className="w-12 h-12 bg-orange-600 rounded-2xl items-center justify-center mr-4">
-                    <Text className="text-white text-lg">🗳️</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-gray-900 font-semibold text-base">Voting Rights</Text>
-                    <Text className="text-gray-600 text-sm">Participate in community decisions</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
         </View>
 
         <View className="h-8"></View>

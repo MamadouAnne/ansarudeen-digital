@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // --- Promise Timeout Helper ---
 function promiseWithTimeout<T>(promise: Promise<T>, ms: number, timeoutError = new Error('Promise timed out')): Promise<T> {
@@ -54,6 +55,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateProfile: (userData: Partial<UserProfile>) => Promise<void>;
   refreshUser: () => Promise<void>;
+  clearInvalidSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,8 +82,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initialize = async () => {
       setIsLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('Session error during initialization:', error);
+          // Clear invalid session data if refresh token is invalid
+          if (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token')) {
+            console.log('Clearing invalid session data');
+            await supabase.auth.signOut();
+          }
+        } else if (session) {
           setSession(session);
           setIsManuallyAuthenticated(true);
           // Try to load profile but don't block authentication if it fails
@@ -96,6 +105,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (e) {
         console.error("Auth initialization error:", e);
+        // Clear any invalid session data
+        try {
+          await supabase.auth.signOut();
+        } catch (signOutError) {
+          console.warn('Error during signOut:', signOutError);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -133,6 +148,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Token refreshed, maintaining auth state');
         setSession(session);
         // Don't reset auth state or reload profile on token refresh
+      } else if (event === 'INITIAL_SESSION') {
+        console.log('Initial session event - no action needed');
+        // This event is fired during initialization, handled by initialize() function
       }
     });
 
@@ -303,6 +321,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const clearInvalidSession = async () => {
+    try {
+      console.log('Clearing invalid session data');
+      // Clear AsyncStorage session data
+      await AsyncStorage.removeItem('supabase.auth.token');
+      await supabase.auth.signOut();
+      setSession(null);
+      setUser(null);
+      setIsManuallyAuthenticated(false);
+      setIsLoading(false);
+    } catch (error) {
+      console.warn('Error clearing invalid session:', error);
+      // Force clear state even if signOut fails
+      setSession(null);
+      setUser(null);
+      setIsManuallyAuthenticated(false);
+      setIsLoading(false);
+    }
+  };
+
   const isAuthenticated = !!user && !!session && isManuallyAuthenticated;
 
   const value: AuthContextType = {
@@ -316,6 +354,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     updateProfile,
     refreshUser,
+    clearInvalidSession,
   };
 
   return (
