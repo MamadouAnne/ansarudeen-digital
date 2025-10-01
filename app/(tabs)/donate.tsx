@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function DonateScreen() {
@@ -45,14 +44,14 @@ export default function DonateScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-slate-50">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
         <LinearGradient
           colors={['#059669', '#047857', '#065f46']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 py-10 relative overflow-hidden"
+          className="px-6 pt-14 pb-10 relative overflow-hidden"
         >
           {/* Decorative Islamic pattern */}
           <View className="absolute inset-0 opacity-10">
@@ -245,6 +244,6 @@ export default function DonateScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

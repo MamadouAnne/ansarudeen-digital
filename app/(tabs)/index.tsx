@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,14 +31,14 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-slate-50">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header with Gradient */}
         <LinearGradient
           colors={['#059669', '#047857', '#065f46']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 py-10"
+          className="px-6 pt-14 pb-10"
         >
           {/* Decorative Islamic pattern overlay */}
           <View className="absolute inset-0 opacity-10">
@@ -267,6 +266,6 @@ export default function HomeScreen() {
           <View className="h-4"></View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

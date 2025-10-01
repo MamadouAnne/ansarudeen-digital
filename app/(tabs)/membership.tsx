@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -10,25 +9,25 @@ export default function MembershipScreen() {
 
   if (!user || !profile) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center p-6">
+      <View className="flex-1 bg-slate-50 items-center justify-center p-6">
         <View className="w-20 h-20 bg-emerald-100 rounded-full items-center justify-center mb-4">
           <Text className="text-4xl">🎫</Text>
         </View>
         <Text className="text-slate-800 text-lg font-bold mb-2">Sign In Required</Text>
         <Text className="text-slate-600 text-center">Please sign in to view your membership card</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-slate-50">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
         <LinearGradient
           colors={['#059669', '#047857', '#065f46']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 py-10 relative overflow-hidden"
+          className="px-6 pt-14 pb-10 relative overflow-hidden"
         >
           {/* Decorative Islamic pattern */}
           <View className="absolute inset-0 opacity-10">
@@ -215,6 +214,6 @@ export default function MembershipScreen() {
 
         <View className="h-8"></View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

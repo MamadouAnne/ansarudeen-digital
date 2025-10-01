@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,36 +57,36 @@ export default function ProfileScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center">
+      <View className="flex-1 bg-slate-50 items-center justify-center">
         <View className="items-center">
           <ActivityIndicator size="large" color="#059669" />
           <Text className="text-slate-600 mt-4 font-medium">Loading profile...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!user || !profile) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center p-6">
+      <View className="flex-1 bg-slate-50 items-center justify-center p-6">
         <View className="w-20 h-20 bg-emerald-100 rounded-full items-center justify-center mb-4">
           <Text className="text-4xl">👤</Text>
         </View>
         <Text className="text-slate-800 text-lg font-bold mb-2">Sign In Required</Text>
         <Text className="text-slate-600 text-center">Please sign in to view your profile</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-slate-50">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
         <LinearGradient
           colors={['#059669', '#047857', '#065f46']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 py-10 relative overflow-hidden"
+          className="px-6 pt-14 pb-10 relative overflow-hidden"
         >
           {/* Decorative Islamic pattern */}
           <View className="absolute inset-0 opacity-10">
@@ -310,6 +309,6 @@ export default function ProfileScreen() {
           <View className="h-4"></View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
