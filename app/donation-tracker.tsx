@@ -59,17 +59,19 @@ export default function DonationTrackerScreen() {
             <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
           </View>
 
-          <View className="relative z-10 mt-4">
-            {/* Back Button */}
+          {/* Back Button - positioned absolutely */}
+          <View className="absolute top-20 left-4 z-20">
             <Link href="/(tabs)" asChild>
-              <TouchableOpacity className="mb-6">
+              <TouchableOpacity>
                 <View className="flex-row items-center">
                   <Text className="text-white text-lg font-bold mr-2">←</Text>
                   <Text className="text-white text-base font-semibold">Back</Text>
                 </View>
               </TouchableOpacity>
             </Link>
+          </View>
 
+          <View className="relative z-10 mt-8">
             {/* Header Content */}
             <View className="items-center">
               <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
@@ -84,9 +86,9 @@ export default function DonationTrackerScreen() {
             </View>
 
             {/* Tab Selector */}
-            <View className="flex-row bg-white/20 backdrop-blur-sm rounded-2xl p-1 border border-white/30 mt-4">
+            <View className="flex-row bg-white/20 backdrop-blur-sm rounded-2xl p-1 border border-white/30 mt-3">
               <TouchableOpacity
-                className={`flex-1 py-3 rounded-xl ${
+                className={`flex-1 py-4 rounded-xl ${
                   activeTab === 'community' ? 'bg-white' : ''
                 }`}
                 onPress={() => setActiveTab('community')}
@@ -100,7 +102,7 @@ export default function DonationTrackerScreen() {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`flex-1 py-3 rounded-xl ${
+                className={`flex-1 py-4 rounded-xl ${
                   activeTab === 'personal' ? 'bg-white' : ''
                 }`}
                 onPress={() => setActiveTab('personal')}
