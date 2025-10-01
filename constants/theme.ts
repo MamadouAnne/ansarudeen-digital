@@ -5,25 +5,41 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Islamic green color palette
+const islamicGreenLight = '#059669'; // emerald-600
+const islamicGreenDark = '#10b981'; // emerald-500
+const goldAccent = '#f59e0b'; // amber-500
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: '#0f172a',
+    background: '#f8fafc',
+    tint: islamicGreenLight,
+    icon: '#64748b',
+    tabIconDefault: '#94a3b8',
+    tabIconSelected: islamicGreenLight,
+    primary: islamicGreenLight,
+    primaryLight: '#d1fae5',
+    primaryDark: '#047857',
+    secondary: goldAccent,
+    accent: '#0ea5e9', // sky-500
+    cardBg: '#ffffff',
+    border: '#e2e8f0',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#f1f5f9',
+    background: '#0f172a',
+    tint: islamicGreenDark,
+    icon: '#94a3b8',
+    tabIconDefault: '#64748b',
+    tabIconSelected: islamicGreenDark,
+    primary: islamicGreenDark,
+    primaryLight: '#065f46',
+    primaryDark: '#34d399',
+    secondary: goldAccent,
+    accent: '#38bdf8',
+    cardBg: '#1e293b',
+    border: '#334155',
   },
 };
 
