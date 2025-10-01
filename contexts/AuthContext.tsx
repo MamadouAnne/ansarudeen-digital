@@ -93,15 +93,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else if (session) {
           setSession(session);
           setIsManuallyAuthenticated(true);
-          // Try to load profile but don't block authentication if it fails
-          try {
-            await promiseWithTimeout(loadUserProfile(session.user), 5000, new Error('Profile loading timed out. Please check your connection.'));
-          } catch (profileError) {
-            console.warn('Profile loading failed during initialization:', profileError);
-            // Set user with fallback profile from user metadata
-            const fallbackProfile = createFallbackProfile(session.user);
-            setUser({ supabaseUser: session.user, profile: fallbackProfile });
-          }
+          // Create immediate fallback profile
+          const fallbackProfile = createFallbackProfile(session.user);
+          setUser({ supabaseUser: session.user, profile: fallbackProfile });
+
+          // Try to load actual profile in background
+          promiseWithTimeout(loadUserProfile(session.user), 3000, new Error('Profile loading timed out'))
+            .catch((profileError) => {
+              console.warn('Background profile loading failed during initialization:', profileError);
+            });
         }
       } catch (e) {
         console.error("Auth initialization error:", e);
@@ -122,22 +122,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Auth state change event:', event, 'session exists:', !!session);
 
       if (event === 'SIGNED_IN' && session) {
-        setIsLoading(true);
-        try {
-          setSession(session);
-          setIsManuallyAuthenticated(true);
-          // Try to load profile but don't block authentication if it fails
-          await promiseWithTimeout(loadUserProfile(session.user), 5000, new Error('Profile loading timed out. Please check your connection.'));
-        } catch (e) {
-          console.warn("Auth SIGNED_IN profile loading failed:", e);
-          // Don't block authentication on profile loading timeout
-          if (session?.user) {
-            const fallbackProfile = createFallbackProfile(session.user);
-            setUser({ supabaseUser: session.user, profile: fallbackProfile });
-          }
-        } finally {
-          setIsLoading(false);
-        }
+        setSession(session);
+        setIsManuallyAuthenticated(true);
+        // Create immediate fallback profile for instant redirect
+        const fallbackProfile = createFallbackProfile(session.user);
+        setUser({ supabaseUser: session.user, profile: fallbackProfile });
+        setIsLoading(false);
+
+        // Try to load actual profile in background (don't await)
+        promiseWithTimeout(loadUserProfile(session.user), 3000, new Error('Profile loading timed out'))
+          .catch((e) => {
+            console.warn("Background profile loading failed:", e);
+          });
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing state');
         setSession(null);
