@@ -38,7 +38,7 @@ export default function HomeScreen() {
           colors={['#059669', '#047857', '#065f46']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 pt-14 pb-10"
+          className="px-6 pt-24 pb-12"
         >
           {/* Decorative Islamic pattern overlay */}
           <View className="absolute inset-0 opacity-10">
@@ -47,7 +47,7 @@ export default function HomeScreen() {
             <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
           </View>
 
-          <View className="items-center text-center relative z-10">
+          <View className="items-center text-center relative z-10 mt-8">
             {/* Crescent and Star Symbol */}
             <View className="w-24 h-24 bg-white/20 rounded-full items-center justify-center mb-4 border-3 border-white/40 shadow-lg">
               <Text className="text-white text-4xl">☪️</Text>
@@ -73,7 +73,7 @@ export default function HomeScreen() {
           </View>
         </LinearGradient>
 
-        <View className="px-4 -mt-6">
+        <View className="px-4 -mt-4">
           {/* Community Overview with Islamic Design */}
           <View className="mb-6">
             <View className="bg-white rounded-3xl shadow-lg border border-emerald-100 p-6">

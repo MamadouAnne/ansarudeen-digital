@@ -27,7 +27,7 @@ export default function MembershipScreen() {
           colors={['#059669', '#047857', '#065f46']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 pt-14 pb-10 relative overflow-hidden"
+          className="px-6 pt-24 pb-12 relative overflow-hidden"
         >
           {/* Decorative Islamic pattern */}
           <View className="absolute inset-0 opacity-10">
@@ -36,7 +36,7 @@ export default function MembershipScreen() {
             <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
           </View>
 
-          <View className="items-center relative z-10">
+          <View className="items-center relative z-10 mt-8">
             <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
               <Text className="text-3xl">🎫</Text>
             </View>
@@ -53,7 +53,7 @@ export default function MembershipScreen() {
         </LinearGradient>
 
         {/* Premium Islamic Membership Card */}
-        <View className="mx-5 -mt-12 mb-6 relative z-10">
+        <View className="mx-5 -mt-8 mb-6 relative z-10">
           <LinearGradient
             colors={['#047857', '#059669', '#10b981']}
             start={{ x: 0, y: 0 }}
