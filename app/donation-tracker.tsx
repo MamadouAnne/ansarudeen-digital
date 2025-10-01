@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 
 export default function DonationTrackerScreen() {
@@ -43,124 +43,159 @@ export default function DonationTrackerScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1">
-        {/* Header */}
-        <View className="bg-primary-600 px-6 py-6">
-          <View className="flex-row items-center justify-between mb-4">
+    <View className="flex-1 bg-slate-50">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Islamic-themed Header */}
+        <LinearGradient
+          colors={['#059669', '#047857', '#065f46']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="px-6 pt-24 pb-12 relative overflow-hidden"
+        >
+          {/* Decorative Islamic pattern */}
+          <View className="absolute inset-0 opacity-10">
+            <View className="absolute top-4 right-4 w-28 h-28 border-4 border-white rounded-full" />
+            <View className="absolute top-12 right-12 w-20 h-20 border-4 border-white rounded-full" />
+            <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
+          </View>
+
+          <View className="relative z-10 mt-4">
+            {/* Back Button */}
             <Link href="/(tabs)" asChild>
-              <TouchableOpacity>
-                <Text className="text-white text-lg">← Back</Text>
+              <TouchableOpacity className="mb-6">
+                <View className="flex-row items-center">
+                  <Text className="text-white text-lg font-bold mr-2">←</Text>
+                  <Text className="text-white text-base font-semibold">Back</Text>
+                </View>
               </TouchableOpacity>
             </Link>
-            <Text className="text-white text-xl font-bold">Donation Tracker</Text>
-            <View style={{width: 50}}></View>
-          </View>
 
-          {/* Tab Selector */}
-          <View className="flex-row bg-primary-700 rounded-lg p-1">
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-md ${
-                activeTab === 'community' ? 'bg-white' : ''
-              }`}
-              onPress={() => setActiveTab('community')}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === 'community' ? 'text-primary-600' : 'text-primary-100'
-                }`}
-              >
-                Community
+            {/* Header Content */}
+            <View className="items-center">
+              <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
+                <Text className="text-3xl">📊</Text>
+              </View>
+              <Text className="text-white text-3xl font-bold mb-1">
+                Donation Tracker
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-md ${
-                activeTab === 'personal' ? 'bg-white' : ''
-              }`}
-              onPress={() => setActiveTab('personal')}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  activeTab === 'personal' ? 'text-primary-600' : 'text-primary-100'
-                }`}
-              >
-                Personal
+              <Text className="text-emerald-100 text-sm font-medium mb-4">
+                تَتَبُّع الصَّدَقَات • Track Sadaqah
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+            </View>
 
-        <View className="px-6 py-6">
+            {/* Tab Selector */}
+            <View className="flex-row bg-white/20 backdrop-blur-sm rounded-2xl p-1 border border-white/30 mt-4">
+              <TouchableOpacity
+                className={`flex-1 py-3 rounded-xl ${
+                  activeTab === 'community' ? 'bg-white' : ''
+                }`}
+                onPress={() => setActiveTab('community')}
+              >
+                <Text
+                  className={`text-center font-bold ${
+                    activeTab === 'community' ? 'text-emerald-600' : 'text-white'
+                  }`}
+                >
+                  Community
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-3 rounded-xl ${
+                  activeTab === 'personal' ? 'bg-white' : ''
+                }`}
+                onPress={() => setActiveTab('personal')}
+              >
+                <Text
+                  className={`text-center font-bold ${
+                    activeTab === 'personal' ? 'text-emerald-600' : 'text-white'
+                  }`}
+                >
+                  Personal
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </LinearGradient>
+
+        <View className="px-5 -mt-4">
           {activeTab === 'community' ? (
             <>
               {/* Community Overview */}
-              <View className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
-                <Text className="text-xl font-bold text-gray-800 mb-4">Community Impact</Text>
+              <View className="bg-white rounded-3xl shadow-lg border-2 border-emerald-100 p-6 mb-5">
+                <View className="flex-row items-center mb-5">
+                  <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                    <Text className="text-emerald-600 text-xl">🕌</Text>
+                  </View>
+                  <Text className="text-2xl font-bold text-slate-800">Community Impact</Text>
+                </View>
 
                 {/* Total Progress */}
-                <View className="mb-6">
-                  <View className="flex-row justify-between mb-2">
-                    <Text className="text-gray-600">Total Raised</Text>
-                    <Text className="text-gray-800 font-bold">
+                <View className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-5 mb-5 border-2 border-emerald-200">
+                  <View className="flex-row justify-between mb-3">
+                    <Text className="text-slate-700 font-bold">Total Raised</Text>
+                    <Text className="text-slate-800 font-extrabold">
                       {formatCurrency(communityStats.totalRaised)} / {formatCurrency(communityStats.targetAmount)}
                     </Text>
                   </View>
-                  <View className="bg-gray-200 rounded-full h-3 mb-2">
+                  <View className="bg-slate-200 rounded-full h-4 mb-2">
                     <View
-                      className="bg-primary-600 h-3 rounded-full"
+                      className="bg-emerald-600 h-4 rounded-full"
                       style={{
                         width: `${getProgressPercentage(communityStats.totalRaised, communityStats.targetAmount)}%`
                       }}
                     ></View>
                   </View>
-                  <Text className="text-sm text-gray-600">
+                  <Text className="text-sm text-emerald-700 font-semibold">
                     {getProgressPercentage(communityStats.totalRaised, communityStats.targetAmount).toFixed(1)}% of target achieved
                   </Text>
                 </View>
 
                 {/* Stats */}
                 <View className="flex-row justify-between">
-                  <View className="items-center">
-                    <Text className="text-2xl font-bold text-primary-600">
+                  <View className="bg-emerald-50 rounded-2xl p-4 items-center flex-1 mr-2 border border-emerald-200">
+                    <Text className="text-3xl font-extrabold text-emerald-600">
                       {communityStats.donorsCount}
                     </Text>
-                    <Text className="text-gray-600 text-sm">Donors</Text>
+                    <Text className="text-slate-600 text-xs font-bold mt-1">Donors</Text>
                   </View>
-                  <View className="items-center">
-                    <Text className="text-2xl font-bold text-green-600">
+                  <View className="bg-amber-50 rounded-2xl p-4 items-center flex-1 mx-1 border border-amber-200">
+                    <Text className="text-3xl font-extrabold text-amber-600">
                       {communityStats.campaigns.length}
                     </Text>
-                    <Text className="text-gray-600 text-sm">Active Campaigns</Text>
+                    <Text className="text-slate-600 text-xs font-bold mt-1">Campaigns</Text>
                   </View>
-                  <View className="items-center">
-                    <Text className="text-2xl font-bold text-blue-600">
-                      {Math.round((communityStats.totalRaised / communityStats.donorsCount))}
+                  <View className="bg-sky-50 rounded-2xl p-4 items-center flex-1 ml-2 border border-sky-200">
+                    <Text className="text-3xl font-extrabold text-sky-600">
+                      ${Math.round((communityStats.totalRaised / communityStats.donorsCount))}
                     </Text>
-                    <Text className="text-gray-600 text-sm">Avg. Donation</Text>
+                    <Text className="text-slate-600 text-xs font-bold mt-1">Avg.</Text>
                   </View>
                 </View>
               </View>
 
               {/* Campaigns */}
-              <View className="space-y-4">
-                <Text className="text-lg font-bold text-gray-800">Active Campaigns</Text>
+              <View className="space-y-3 mt-5">
+                <View className="flex-row items-center mb-2">
+                  <Text className="text-2xl font-bold text-slate-800 flex-1">Active Campaigns</Text>
+                  <Text className="text-emerald-600 text-xs font-medium">حَمَلات • Campaigns</Text>
+                </View>
                 {communityStats.campaigns.map((campaign, index) => (
-                  <View key={index} className="bg-white rounded-lg p-4 border border-gray-200">
-                    <View className="flex-row justify-between items-center mb-2">
-                      <Text className="font-bold text-gray-800">{campaign.name}</Text>
-                      <Text className="text-sm text-gray-600">
+                  <View key={index} className="bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm">
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="font-bold text-slate-800 text-base">{campaign.name}</Text>
+                      <Text className="text-sm text-slate-600 font-semibold">
                         {formatCurrency(campaign.raised)} / {formatCurrency(campaign.target)}
                       </Text>
                     </View>
-                    <View className="bg-gray-200 rounded-full h-2 mb-2">
+                    <View className="bg-slate-200 rounded-full h-3 mb-2">
                       <View
-                        className="bg-primary-600 h-2 rounded-full"
+                        className="bg-emerald-600 h-3 rounded-full"
                         style={{
                           width: `${getProgressPercentage(campaign.raised, campaign.target)}%`
                         }}
                       ></View>
                     </View>
-                    <Text className="text-sm text-gray-600">
+                    <Text className="text-sm text-emerald-700 font-bold">
                       {getProgressPercentage(campaign.raised, campaign.target).toFixed(1)}% completed
                     </Text>
                   </View>
@@ -170,39 +205,47 @@ export default function DonationTrackerScreen() {
           ) : (
             <>
               {/* Personal Overview */}
-              <View className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
-                <Text className="text-xl font-bold text-gray-800 mb-4">Your Contributions</Text>
+              <View className="bg-white rounded-3xl shadow-lg border-2 border-emerald-100 p-6 mb-5">
+                <View className="flex-row items-center mb-5">
+                  <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                    <Text className="text-emerald-600 text-xl">💰</Text>
+                  </View>
+                  <Text className="text-2xl font-bold text-slate-800">Your Contributions</Text>
+                </View>
                 <View className="flex-row justify-between items-center">
-                  <View>
-                    <Text className="text-3xl font-bold text-primary-600">
+                  <View className="bg-emerald-50 rounded-2xl p-4 flex-1 mr-3 border-2 border-emerald-200">
+                    <Text className="text-4xl font-extrabold text-emerald-600">
                       {formatCurrency(totalPersonalDonations)}
                     </Text>
-                    <Text className="text-gray-600">Total Donated</Text>
+                    <Text className="text-slate-600 font-bold text-sm mt-2">Total Sadaqah</Text>
                   </View>
-                  <View className="items-end">
-                    <Text className="text-2xl font-bold text-green-600">
+                  <View className="bg-amber-50 rounded-2xl p-4 flex-1 border-2 border-amber-200">
+                    <Text className="text-4xl font-extrabold text-amber-600">
                       {personalDonations.length}
                     </Text>
-                    <Text className="text-gray-600">Donations Made</Text>
+                    <Text className="text-slate-600 font-bold text-sm mt-2">Donations</Text>
                   </View>
                 </View>
               </View>
 
               {/* Personal Donations History */}
-              <View className="space-y-4">
-                <Text className="text-lg font-bold text-gray-800">Donation History</Text>
+              <View className="space-y-3 mt-5">
+                <View className="flex-row items-center mb-2">
+                  <Text className="text-2xl font-bold text-slate-800 flex-1">Donation History</Text>
+                  <Text className="text-emerald-600 text-xs font-medium">تَارِيخ • History</Text>
+                </View>
                 {personalDonations.map((donation) => (
-                  <View key={donation.id} className="bg-white rounded-lg p-4 border border-gray-200">
+                  <View key={donation.id} className="bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm">
                     <View className="flex-row justify-between items-start">
                       <View className="flex-1">
-                        <Text className="font-bold text-gray-800 mb-1">
+                        <Text className="font-extrabold text-slate-800 text-xl mb-2">
                           {formatCurrency(donation.amount)}
                         </Text>
-                        <Text className="text-gray-600 mb-1">{donation.purpose}</Text>
-                        <Text className="text-sm text-gray-500">{donation.date}</Text>
+                        <Text className="text-slate-700 font-semibold mb-1">{donation.purpose}</Text>
+                        <Text className="text-sm text-slate-500 font-medium">{donation.date}</Text>
                       </View>
-                      <View className="bg-green-100 px-2 py-1 rounded-full">
-                        <Text className="text-green-700 font-semibold text-xs">
+                      <View className="bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-300">
+                        <Text className="text-emerald-700 font-extrabold text-xs">
                           {donation.status}
                         </Text>
                       </View>
@@ -213,10 +256,17 @@ export default function DonationTrackerScreen() {
 
               {/* Make Another Donation */}
               <Link href="/(tabs)/donate" asChild>
-                <TouchableOpacity className="mt-6 bg-primary-600 py-4 rounded-lg">
-                  <Text className="text-white text-lg font-bold text-center">
-                    Make Another Donation
-                  </Text>
+                <TouchableOpacity className="mt-6">
+                  <LinearGradient
+                    colors={['#059669', '#047857']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    className="py-5 rounded-2xl shadow-lg"
+                  >
+                    <Text className="text-white text-lg font-extrabold text-center">
+                      Give Another Sadaqah 💝
+                    </Text>
+                  </LinearGradient>
                 </TouchableOpacity>
               </Link>
             </>
@@ -225,6 +275,6 @@ export default function DonationTrackerScreen() {
           <View className="h-8"></View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
