@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, StatusBar, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function DonateScreen() {
@@ -45,13 +45,15 @@ export default function DonateScreen() {
 
   return (
     <View className="flex-1 bg-slate-50">
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
         <LinearGradient
           colors={['#059669', '#047857', '#065f46']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 pt-24 pb-12 relative overflow-hidden"
+          className="px-6 pb-12 relative overflow-hidden"
+          style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
         >
           {/* Decorative Islamic pattern */}
           <View className="absolute inset-0 opacity-10">
