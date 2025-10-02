@@ -96,22 +96,20 @@ export default function ProfileScreen() {
           </View>
 
           <View className="items-center relative z-10 mt-8">
-            <View className="w-28 h-28 bg-white rounded-full items-center justify-center mb-4 border-4 border-emerald-400 shadow-lg">
-              <Text className="text-emerald-600 text-4xl font-extrabold">
+            <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-3 border-2 border-white/40">
+              <Text className="text-emerald-600 text-2xl font-extrabold">
                 {(profile.first_name?.[0] || '').toUpperCase()}{(profile.last_name?.[0] || '').toUpperCase()}
               </Text>
             </View>
             <Text className="text-white text-3xl font-bold mb-1">
               {profile.first_name || ''} {profile.last_name || ''}
             </Text>
-            <Text className="text-emerald-100 text-sm font-medium mb-3">
+            <Text className="text-emerald-100 text-sm font-medium mb-2">
               السَّلَامُ عَلَيْكُمْ • Peace be upon you
             </Text>
-            <View className="bg-white/20 backdrop-blur-sm rounded-2xl px-5 py-2 border border-white/30">
-              <Text className="text-white text-sm font-semibold">
-                Member ID: {profile.membership_id || 'N/A'}
-              </Text>
-            </View>
+            <Text className="text-white text-base font-medium">
+              Member ID: {profile.membership_id || 'N/A'}
+            </Text>
           </View>
         </LinearGradient>
 
@@ -135,81 +133,96 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            <View className="space-y-4">
-              <View>
-                <Text className="text-slate-600 text-sm mb-2 font-bold">First Name</Text>
-                {isEditing ? (
+            {isEditing ? (
+              <View className="space-y-4">
+                <View>
+                  <Text className="text-slate-600 text-sm mb-2 font-bold">First Name</Text>
                   <TextInput
                     className="border-2 border-emerald-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold bg-slate-50"
                     value={profileData.first_name}
                     onChangeText={(value) => updateProfileData('first_name', value)}
                   />
-                ) : (
-                  <View className="bg-slate-50 rounded-2xl px-4 py-3">
-                    <Text className="text-slate-800 font-semibold">{profileData.first_name}</Text>
-                  </View>
-                )}
-              </View>
+                </View>
 
-              <View>
-                <Text className="text-slate-600 text-sm mb-2 font-bold">Last Name</Text>
-                {isEditing ? (
+                <View>
+                  <Text className="text-slate-600 text-sm mb-2 font-bold">Last Name</Text>
                   <TextInput
                     className="border-2 border-emerald-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold bg-slate-50"
                     value={profileData.last_name}
                     onChangeText={(value) => updateProfileData('last_name', value)}
                   />
-                ) : (
-                  <View className="bg-slate-50 rounded-2xl px-4 py-3">
-                    <Text className="text-slate-800 font-semibold">{profileData.last_name}</Text>
-                  </View>
-                )}
-              </View>
+                </View>
 
-              <View>
-                <Text className="text-slate-600 text-sm mb-2 font-bold">Email</Text>
-                {isEditing ? (
+                <View>
+                  <Text className="text-slate-600 text-sm mb-2 font-bold">Email</Text>
                   <TextInput
                     className="border-2 border-emerald-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold bg-slate-50"
                     value={profileData.email}
                     onChangeText={(value) => updateProfileData('email', value)}
                     keyboardType="email-address"
                   />
-                ) : (
-                  <View className="bg-slate-50 rounded-2xl px-4 py-3">
-                    <Text className="text-slate-800 font-semibold">{profileData.email}</Text>
-                  </View>
-                )}
-              </View>
+                </View>
 
-              <View>
-                <Text className="text-slate-600 text-sm mb-2 font-bold">Phone</Text>
-                {isEditing ? (
+                <View>
+                  <Text className="text-slate-600 text-sm mb-2 font-bold">Phone</Text>
                   <TextInput
                     className="border-2 border-emerald-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold bg-slate-50"
                     value={profileData.phone}
                     onChangeText={(value) => updateProfileData('phone', value)}
                     keyboardType="phone-pad"
                   />
-                ) : (
-                  <View className="bg-slate-50 rounded-2xl px-4 py-3">
-                    <Text className="text-slate-800 font-semibold">{profileData.phone || 'Not provided'}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
+                </View>
 
-            {isEditing && (
-              <TouchableOpacity onPress={handleSaveProfile}>
-                <LinearGradient
-                  colors={['#059669', '#047857']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  className="mt-5 py-4 rounded-2xl shadow-lg"
-                >
-                  <Text className="text-white font-extrabold text-center text-lg">Save Changes</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                <TouchableOpacity onPress={handleSaveProfile}>
+                  <LinearGradient
+                    colors={['#059669', '#047857']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    className="mt-1 py-4 rounded-2xl shadow-lg"
+                  >
+                    <Text className="text-white font-extrabold text-center text-lg">Save Changes</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View className="space-y-3">
+                <View className="bg-slate-50 rounded-2xl p-4 flex-row justify-between items-center">
+                  <View className="flex-row items-center">
+                    <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                      <Text className="text-emerald-600 text-base">👤</Text>
+                    </View>
+                    <Text className="text-slate-600 font-semibold">First Name:</Text>
+                  </View>
+                  <Text className="text-slate-800 font-bold">{profileData.first_name}</Text>
+                </View>
+                <View className="bg-slate-50 rounded-2xl p-4 flex-row justify-between items-center">
+                  <View className="flex-row items-center">
+                    <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                      <Text className="text-emerald-600 text-base">👤</Text>
+                    </View>
+                    <Text className="text-slate-600 font-semibold">Last Name:</Text>
+                  </View>
+                  <Text className="text-slate-800 font-bold">{profileData.last_name}</Text>
+                </View>
+                <View className="bg-slate-50 rounded-2xl p-4 flex-row justify-between items-center">
+                  <View className="flex-row items-center">
+                    <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                      <Text className="text-emerald-600 text-base">📧</Text>
+                    </View>
+                    <Text className="text-slate-600 font-semibold">Email:</Text>
+                  </View>
+                  <Text className="text-slate-800 font-bold">{profileData.email}</Text>
+                </View>
+                <View className="bg-slate-50 rounded-2xl p-4 flex-row justify-between items-center">
+                  <View className="flex-row items-center">
+                    <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                      <Text className="text-emerald-600 text-base">📱</Text>
+                    </View>
+                    <Text className="text-slate-600 font-semibold">Phone:</Text>
+                  </View>
+                  <Text className="text-slate-800 font-bold">{profileData.phone || 'Not provided'}</Text>
+                </View>
+              </View>
             )}
           </View>
 

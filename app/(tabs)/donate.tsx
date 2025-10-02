@@ -70,10 +70,9 @@ export default function DonateScreen() {
             <Text className="text-emerald-100 text-sm font-medium mb-2">
               صَدَقَة • Charity
             </Text>
-            <Text className="text-white text-base font-medium text-center px-6">
+            <Text className="text-white text-base font-medium text-center">
               "The believer's shade on the Day of Resurrection will be their charity"
             </Text>
-            <Text className="text-emerald-200 text-xs mt-1 font-medium">- Prophet Muhammad ﷺ</Text>
           </View>
         </LinearGradient>
 

@@ -49,16 +49,16 @@ export default function HomeScreen() {
 
           <View className="items-center text-center relative z-10 mt-8">
             {/* Crescent and Star Symbol */}
-            <View className="w-24 h-24 bg-white/20 rounded-full items-center justify-center mb-4 border-3 border-white/40 shadow-lg">
-              <Text className="text-white text-4xl">☪️</Text>
+            <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
+              <Text className="text-3xl">☪️</Text>
             </View>
             <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
               Ansarudeen Digital
             </Text>
-            <Text className="text-emerald-100 text-base font-medium mb-4">
+            <Text className="text-emerald-100 text-sm font-medium mb-2">
               أنصار الدين • Helpers of the Faith
             </Text>
-            <Text className="text-white text-lg font-semibold">
+            <Text className="text-white text-base font-medium">
               {isAuthenticated && user?.profile?.first_name
                 ? `As-salamu alaykum, ${user.profile.first_name}!`
                 : 'Building a stronger Muslim community'}

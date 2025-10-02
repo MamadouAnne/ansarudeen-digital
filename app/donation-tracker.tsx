@@ -80,46 +80,48 @@ export default function DonationTrackerScreen() {
               <Text className="text-white text-3xl font-bold mb-1">
                 Donation Tracker
               </Text>
-              <Text className="text-emerald-100 text-sm font-medium mb-4">
+              <Text className="text-emerald-100 text-sm font-medium">
                 تَتَبُّع الصَّدَقَات • Track Sadaqah
               </Text>
-            </View>
-
-            {/* Tab Selector */}
-            <View className="flex-row bg-white/20 backdrop-blur-sm rounded-2xl p-1 border border-white/30 mt-3">
-              <TouchableOpacity
-                className={`flex-1 py-4 rounded-xl ${
-                  activeTab === 'community' ? 'bg-white' : ''
-                }`}
-                onPress={() => setActiveTab('community')}
-              >
-                <Text
-                  className={`text-center font-bold ${
-                    activeTab === 'community' ? 'text-emerald-600' : 'text-white'
-                  }`}
-                >
-                  Community
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className={`flex-1 py-4 rounded-xl ${
-                  activeTab === 'personal' ? 'bg-white' : ''
-                }`}
-                onPress={() => setActiveTab('personal')}
-              >
-                <Text
-                  className={`text-center font-bold ${
-                    activeTab === 'personal' ? 'text-emerald-600' : 'text-white'
-                  }`}
-                >
-                  Personal
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
         </LinearGradient>
 
-        <View className="px-5 -mt-4">
+        {/* Tab Selector */}
+        <View className="px-5 -mt-8 mb-4 relative z-10">
+          <View className="flex-row bg-white rounded-2xl p-1 border-2 border-emerald-100 shadow-md">
+            <TouchableOpacity
+              className={`flex-1 py-4 rounded-xl ${
+                activeTab === 'community' ? 'bg-emerald-600' : ''
+              }`}
+              onPress={() => setActiveTab('community')}
+            >
+              <Text
+                className={`text-center font-bold ${
+                  activeTab === 'community' ? 'text-white' : 'text-slate-700'
+                }`}
+              >
+                Community
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className={`flex-1 py-4 rounded-xl ${
+                activeTab === 'personal' ? 'bg-emerald-600' : ''
+              }`}
+              onPress={() => setActiveTab('personal')}
+            >
+              <Text
+                className={`text-center font-bold ${
+                  activeTab === 'personal' ? 'text-white' : 'text-slate-700'
+                }`}
+              >
+                Personal
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View className="px-5">
           {activeTab === 'community' ? (
             <>
               {/* Community Overview */}
