@@ -25,7 +25,7 @@ export function AuthNavigator() {
 
     const inAuthGroup = segments[0] === 'auth';
     const currentPath = segments.join('/');
-    const inProtectedArea = segments[0] === '(tabs)' || segments[0] === 'donation-tracker';
+    const inProtectedArea = segments[0] === '(tabs)' || segments[0] === 'donation-tracker' || segments[0] === 'projects' || segments[0] === 'news';
 
     // Skip navigation if loading to reduce redundant redirects
     if (isLoading) {
@@ -76,6 +76,8 @@ export function AuthNavigator() {
       <Stack.Screen name="auth/signin" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="donation-tracker" options={{ headerShown: false }} />
+      <Stack.Screen name="projects" options={{ headerShown: false }} />
+      <Stack.Screen name="news" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>
   );

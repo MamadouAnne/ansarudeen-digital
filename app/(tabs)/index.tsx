@@ -75,14 +75,27 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             className="px-4"
           >
+            {/* Projects Card */}
+            <Link href="/projects" asChild>
+              <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-teal-100 shadow-sm mr-3 w-32">
+                <View className="w-12 h-12 bg-teal-100 rounded-2xl items-center justify-center mb-2">
+                  <Text className="text-2xl">🏗️</Text>
+                </View>
+                <Text className="text-slate-800 font-bold text-sm mb-0.5">Projects</Text>
+                <Text className="text-slate-500 text-xs">Work</Text>
+              </TouchableOpacity>
+            </Link>
+
             {/* News/Blog Card */}
-            <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-emerald-100 shadow-sm mr-3 w-32">
-              <View className="w-12 h-12 bg-emerald-100 rounded-2xl items-center justify-center mb-2">
-                <Text className="text-2xl">📰</Text>
-              </View>
-              <Text className="text-slate-800 font-bold text-sm mb-0.5">News</Text>
-              <Text className="text-slate-500 text-xs">Updates</Text>
-            </TouchableOpacity>
+            <Link href="/news" asChild>
+              <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-emerald-100 shadow-sm mr-3 w-32">
+                <View className="w-12 h-12 bg-emerald-100 rounded-2xl items-center justify-center mb-2">
+                  <Text className="text-2xl">📰</Text>
+                </View>
+                <Text className="text-slate-800 font-bold text-sm mb-0.5">News</Text>
+                <Text className="text-slate-500 text-xs">Updates</Text>
+              </TouchableOpacity>
+            </Link>
 
             {/* Events Card */}
             <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-sky-100 shadow-sm mr-3 w-32">
@@ -91,15 +104,6 @@ export default function HomeScreen() {
               </View>
               <Text className="text-slate-800 font-bold text-sm mb-0.5">Events</Text>
               <Text className="text-slate-500 text-xs">Gatherings</Text>
-            </TouchableOpacity>
-
-            {/* Projects Card */}
-            <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-teal-100 shadow-sm mr-3 w-32">
-              <View className="w-12 h-12 bg-teal-100 rounded-2xl items-center justify-center mb-2">
-                <Text className="text-2xl">🏗️</Text>
-              </View>
-              <Text className="text-slate-800 font-bold text-sm mb-0.5">Projects</Text>
-              <Text className="text-slate-500 text-xs">Work</Text>
             </TouchableOpacity>
 
             {/* Resources Card */}
