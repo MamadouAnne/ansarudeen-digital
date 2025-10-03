@@ -1,11 +1,15 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StatusBar, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StatusBar, Platform, Dimensions } from 'react-native';
 import { Link } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
+const { width } = Dimensions.get('window');
+
 export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
+  const [activeSlide, setActiveSlide] = useState(0);
+  const carouselRef = useRef<ScrollView>(null);
 
   const quickStats = {
     totalMembers: 1247,
@@ -30,43 +34,175 @@ export default function HomeScreen() {
     }).format(amount);
   };
 
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / width);
+    setActiveSlide(index);
+  };
+
+  // Auto-scroll carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => {
+        const next = (prev + 1) % 2; // 2 slides total
+        carouselRef.current?.scrollTo({ x: next * width, animated: true });
+        return next;
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44;
+
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Islamic-themed Header with Gradient */}
-        <LinearGradient
-          colors={['#059669', '#047857', '#065f46']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="px-6 pb-12"
-          style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
-        >
-          {/* Decorative Islamic pattern overlay */}
-          <View className="absolute inset-0 opacity-10">
-            <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
-            <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
-            <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
-          </View>
+        {/* Header Carousel */}
+        <View>
+          <ScrollView
+            ref={carouselRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {/* Slide 1: Header */}
+            <View style={{ width }}>
+              <View className="border-4 border-red-500">
+                <LinearGradient
+                  colors={['#059669', '#047857', '#065f46']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  className="px-6 pb-12"
+                  style={{ paddingTop }}
+                >
+                {/* Decorative Islamic pattern overlay */}
+                <View className="absolute inset-0 opacity-10">
+                  <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
+                  <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
+                  <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
+                </View>
 
-          <View className="items-center text-center relative z-10 mt-8">
-            {/* Crescent and Star Symbol */}
-            <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
-              <Text className="text-3xl">☪️</Text>
+                <View className="items-center text-center relative z-10 mt-4 mb-8">
+                  {/* Crescent and Star Symbol */}
+                  <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
+                    <Text className="text-3xl">☪️</Text>
+                  </View>
+                  <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
+                    Ansarudeen Digital
+                  </Text>
+                  <Text className="text-emerald-100 text-sm font-medium mb-2">
+                    أنصار الدين • Helpers of the Faith
+                  </Text>
+                  <Text className="text-white text-base font-medium">
+                    {isAuthenticated && user?.profile?.first_name
+                      ? `As-salamu alaykum, ${user.profile.first_name}!`
+                      : 'Building a stronger Muslim community'}
+                  </Text>
+                </View>
+              </LinearGradient>
+              </View>
             </View>
-            <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
-              Ansarudeen Digital
-            </Text>
-            <Text className="text-emerald-100 text-sm font-medium mb-2">
-              أنصار الدين • Helpers of the Faith
-            </Text>
-            <Text className="text-white text-base font-medium">
-              {isAuthenticated && user?.profile?.first_name
-                ? `As-salamu alaykum, ${user.profile.first_name}!`
-                : 'Building a stronger Muslim community'}
-            </Text>
+
+            {/* Slide 2: Fundraising */}
+            <View style={{ width }}>
+              <LinearGradient
+                colors={['#059669', '#047857', '#065f46']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="px-6 pb-12"
+                style={{ paddingTop }}
+              >
+                  {/* Decorative Islamic pattern overlay */}
+                  <View className="absolute inset-0 opacity-10">
+                    <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
+                    <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
+                    <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
+                  </View>
+
+                  <View className="relative z-10 mt-4 mb-8">
+                    {/* Content Card */}
+                    <View className="bg-white/10 backdrop-blur-sm rounded-2xl p-2.5 border border-white/30 shadow-lg">
+                      {/* Header */}
+                      <View className="flex-row items-center justify-center mb-1">
+                        <View className="w-6 h-6 bg-white/90 rounded-full items-center justify-center mr-1.5">
+                          <Text className="text-sm">🏗️</Text>
+                        </View>
+                        <Text className="text-white text-xs font-bold uppercase tracking-wide">
+                          Active Campaign
+                        </Text>
+                      </View>
+
+                      <Text className="text-white text-base font-bold mb-0.5 text-center">
+                        Masjid Expansion Project
+                      </Text>
+                      <Text className="text-emerald-100 text-xs mb-1 text-center">
+                        Help us expand our community center
+                      </Text>
+
+                      {/* Progress Stats */}
+                      <View className="flex-row justify-between mb-1 px-2">
+                        <View>
+                          <Text className="text-white/80 text-xs">Raised</Text>
+                          <Text className="text-white font-bold text-xs">{formatCurrency(45000)}</Text>
+                        </View>
+                        <View className="items-end">
+                          <Text className="text-emerald-200 text-xs">Goal</Text>
+                          <Text className="text-emerald-100 font-bold text-xs">{formatCurrency(100000)}</Text>
+                        </View>
+                      </View>
+
+                      {/* Progress Bar */}
+                      <View className="mb-1">
+                        <View className="h-2 bg-white/20 rounded-full overflow-hidden border border-white/40 shadow-inner">
+                          <LinearGradient
+                            colors={['#ffffff', '#d1fae5', '#a7f3d0']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            className="h-full rounded-full"
+                            style={{ width: '45%' }}
+                          />
+                        </View>
+                        <Text className="text-white text-xs mt-0.5 font-bold text-center">
+                          45% Complete
+                        </Text>
+                      </View>
+
+                      {/* Donate Button */}
+                      <Link href="/projects" asChild>
+                        <TouchableOpacity>
+                          <LinearGradient
+                            colors={['#ffffff', '#f0fdf4']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            className="py-1.5 px-5 rounded-full shadow-lg"
+                          >
+                            <Text className="text-emerald-700 font-bold text-center text-xs">
+                              💝 Donate Now
+                            </Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+                      </Link>
+                    </View>
+                  </View>
+              </LinearGradient>
+            </View>
+          </ScrollView>
+
+          {/* Pagination Dots */}
+          <View className="absolute bottom-3 left-0 right-0 flex-row justify-center">
+            {[0, 1].map((index) => (
+              <View
+                key={index}
+                className={`h-2 rounded-full mx-1 ${
+                  index === activeSlide ? 'bg-white w-6' : 'bg-white/40 w-2'
+                }`}
+              />
+            ))}
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Horizontal Quick Access Bar */}
         <View className="mb-6">
