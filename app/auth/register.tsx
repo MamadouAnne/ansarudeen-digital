@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StatusBar, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -66,36 +66,48 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-slate-50">
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-6 py-8">
-          {/* Header */}
-          <View className="items-center mb-10">
-            {/* Logo with enhanced styling */}
-            <View className="relative mb-6">
-              <View className="absolute inset-0 bg-accent-200 rounded-4xl blur-xl opacity-30" />
-              <View className="w-24 h-24 bg-gradient-to-br from-accent-500 to-accent-700 rounded-4xl items-center justify-center shadow-2xl relative">
-                <View className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-4xl" />
-                <Text className="text-white text-3xl font-bold font-display">AD</Text>
-              </View>
-            </View>
-
-            <Text className="text-4xl font-bold text-gray-900 mb-2">Join Us</Text>
-            <Text className="text-gray-700 text-lg font-medium text-center">
-              Create your Ansarudeen Digital account
-            </Text>
+        {/* Islamic-themed Header */}
+        <LinearGradient
+          colors={['#059669', '#047857', '#065f46']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="px-6 pb-12 relative overflow-hidden"
+          style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
+        >
+          {/* Decorative Islamic pattern */}
+          <View className="absolute inset-0 opacity-10">
+            <View className="absolute top-4 right-4 w-28 h-28 border-4 border-white rounded-full" />
+            <View className="absolute top-12 right-12 w-20 h-20 border-4 border-white rounded-full" />
+            <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
           </View>
 
+          <View className="relative z-10 mt-8 items-center">
+            {/* Logo */}
+            <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-4 border-4 border-emerald-400 shadow-lg">
+              <Text className="text-emerald-600 text-3xl font-extrabold">☪️</Text>
+            </View>
+            <Text className="text-white text-3xl font-bold mb-1">Join Our Community</Text>
+            <Text className="text-emerald-100 text-sm font-medium">
+              انضم إلينا • Create Your Account
+            </Text>
+          </View>
+        </LinearGradient>
+
+        <View className="px-6 -mt-4">
+
           {/* Form Container */}
-          <View className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+          <View className="bg-white rounded-3xl shadow-lg border-2 border-emerald-100 p-6 mb-5">
             {/* Form Fields */}
             <View className="space-y-5">
               {/* Name Fields */}
               <View className="flex-row space-x-4">
                 <View className="flex-1">
-                  <Text className="text-gray-700 mb-3 font-semibold text-base">First Name</Text>
+                  <Text className="text-slate-700 mb-3 font-semibold text-base">First Name</Text>
                   <TextInput
-                    className="border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 text-base bg-gray-50 focus:border-blue-500 focus:bg-white"
+                    className="border-2 border-emerald-200 rounded-xl px-4 py-3 text-slate-900 text-base bg-slate-50"
                     placeholder="First name"
                     placeholderTextColor="#94a3b8"
                     value={formData.firstName}
@@ -103,9 +115,9 @@ export default function RegisterScreen() {
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-gray-700 mb-3 font-semibold text-base">Last Name</Text>
+                  <Text className="text-slate-700 mb-3 font-semibold text-base">Last Name</Text>
                   <TextInput
-                    className="border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 text-base bg-gray-50 focus:border-blue-500 focus:bg-white"
+                    className="border-2 border-emerald-200 rounded-xl px-4 py-3 text-slate-900 text-base bg-slate-50"
                     placeholder="Last name"
                     placeholderTextColor="#94a3b8"
                     value={formData.lastName}
@@ -116,10 +128,10 @@ export default function RegisterScreen() {
 
               {/* Email */}
               <View>
-                <Text className="text-gray-700 mb-3 font-semibold text-base">Email Address</Text>
+                <Text className="text-slate-700 mb-3 font-semibold text-base">Email Address</Text>
                 <View className="relative">
                   <TextInput
-                    className="border-2 border-gray-300 rounded-xl px-6 py-3 text-gray-900 text-base bg-gray-50 focus:border-blue-500 focus:bg-white pr-16"
+                    className="border-2 border-emerald-200 rounded-xl px-6 py-3 text-slate-900 text-base bg-slate-50 pr-16"
                     placeholder="Enter your email address"
                     placeholderTextColor="#94a3b8"
                     value={formData.email}
@@ -128,8 +140,8 @@ export default function RegisterScreen() {
                     autoCapitalize="none"
                   />
                   <View className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                    <View className="w-6 h-6 bg-blue-100 rounded-full items-center justify-center">
-                      <Text className="text-blue-600 text-xs">@</Text>
+                    <View className="w-6 h-6 bg-emerald-100 rounded-full items-center justify-center">
+                      <Text className="text-emerald-600 text-xs">@</Text>
                     </View>
                   </View>
                 </View>
@@ -137,10 +149,10 @@ export default function RegisterScreen() {
 
               {/* Phone */}
               <View>
-                <Text className="text-gray-700 mb-3 font-semibold text-base">Phone Number</Text>
+                <Text className="text-slate-700 mb-3 font-semibold text-base">Phone Number</Text>
                 <View className="relative">
                   <TextInput
-                    className="border-2 border-gray-300 rounded-xl px-6 py-3 text-gray-900 text-base bg-gray-50 focus:border-blue-500 focus:bg-white pr-16"
+                    className="border-2 border-emerald-200 rounded-xl px-6 py-3 text-slate-900 text-base bg-slate-50 pr-16"
                     placeholder="Enter your phone number"
                     placeholderTextColor="#94a3b8"
                     value={formData.phone}
@@ -148,8 +160,8 @@ export default function RegisterScreen() {
                     keyboardType="phone-pad"
                   />
                   <View className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                    <View className="w-6 h-6 bg-green-100 rounded-full items-center justify-center">
-                      <Text className="text-green-600 text-xs">📱</Text>
+                    <View className="w-6 h-6 bg-emerald-100 rounded-full items-center justify-center">
+                      <Text className="text-emerald-600 text-xs">📱</Text>
                     </View>
                   </View>
                 </View>
@@ -157,10 +169,10 @@ export default function RegisterScreen() {
 
               {/* Password */}
               <View>
-                <Text className="text-gray-700 mb-3 font-semibold text-base">Password</Text>
+                <Text className="text-slate-700 mb-3 font-semibold text-base">Password</Text>
                 <View className="relative">
                   <TextInput
-                    className="border-2 border-gray-300 rounded-xl px-6 py-3 text-gray-900 text-base bg-gray-50 focus:border-blue-500 focus:bg-white pr-16"
+                    className="border-2 border-emerald-200 rounded-xl px-6 py-3 text-slate-900 text-base bg-slate-50 pr-16"
                     placeholder="Create a strong password"
                     placeholderTextColor="#94a3b8"
                     value={formData.password}
@@ -180,10 +192,10 @@ export default function RegisterScreen() {
 
               {/* Confirm Password */}
               <View>
-                <Text className="text-gray-700 mb-3 font-semibold text-base">Confirm Password</Text>
+                <Text className="text-slate-700 mb-3 font-semibold text-base">Confirm Password</Text>
                 <View className="relative">
                   <TextInput
-                    className="border-2 border-gray-300 rounded-xl px-6 py-3 text-gray-900 text-base bg-gray-50 focus:border-blue-500 focus:bg-white pr-16"
+                    className="border-2 border-emerald-200 rounded-xl px-6 py-3 text-slate-900 text-base bg-slate-50 pr-16"
                     placeholder="Confirm your password"
                     placeholderTextColor="#94a3b8"
                     value={formData.confirmPassword}
@@ -204,61 +216,55 @@ export default function RegisterScreen() {
 
             {/* Register Button */}
             <TouchableOpacity
-              className={`mt-8 py-4 px-8 rounded-xl ${
-                isLoading
-                  ? 'bg-gray-400'
-                  : 'bg-blue-600'
-              }`}
               onPress={handleRegister}
               disabled={isLoading}
-              style={!isLoading ? {
-                shadowColor: '#2563eb',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 12,
-                elevation: 8,
-              } : undefined}
+              className="mt-8"
             >
-              <View className="flex-row items-center justify-center">
-                {isLoading && (
-                  <View className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
-                )}
-                <Text className="text-white text-lg font-bold">
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
-                </Text>
-              </View>
+              <LinearGradient
+                colors={isLoading ? ['#94a3b8', '#64748b'] : ['#059669', '#047857']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="py-4 rounded-2xl shadow-lg"
+              >
+                <View className="flex-row items-center justify-center">
+                  <Text className="text-white text-lg font-extrabold">
+                    {isLoading ? 'Creating Account...' : 'Create Account'}
+                  </Text>
+                </View>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
           {/* Divider */}
-          <View className="flex-row items-center mb-8">
-            <View className="flex-1 h-px bg-gray-300" />
-            <Text className="px-4 text-gray-500 font-medium">or</Text>
-            <View className="flex-1 h-px bg-gray-300" />
+          <View className="flex-row items-center my-6">
+            <View className="flex-1 h-px bg-emerald-200" />
+            <Text className="px-4 text-slate-500 font-medium">or</Text>
+            <View className="flex-1 h-px bg-emerald-200" />
           </View>
 
           {/* Sign In Link */}
-          <View className="items-center mb-8">
+          <View className="items-center mb-6">
             <View className="flex-row items-center">
-              <Text className="text-gray-600 text-lg">Already have an account? </Text>
+              <Text className="text-slate-600 text-base">Already have an account? </Text>
               <Link href="/auth/signin" asChild>
                 <TouchableOpacity className="ml-1">
-                  <Text className="text-blue-600 font-bold text-lg">Sign In</Text>
+                  <Text className="text-emerald-600 font-bold text-base">Sign In</Text>
                 </TouchableOpacity>
               </Link>
             </View>
           </View>
 
-          {/* Back to Welcome */}
-          <View className="items-center pb-8">
-            <Link href="/welcome" asChild>
-              <TouchableOpacity className="bg-gray-100 px-8 py-4 rounded-xl">
-                <Text className="text-gray-700 font-semibold text-base">← Back to Welcome</Text>
-              </TouchableOpacity>
-            </Link>
+          {/* Islamic Quote */}
+          <View className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-4 border-2 border-emerald-200 mb-6">
+            <Text className="text-emerald-700 text-center text-sm italic font-medium">
+              "And hold firmly to the rope of Allah all together and do not become divided"
+            </Text>
+            <Text className="text-emerald-600 text-center text-xs mt-1 font-semibold">- Quran 3:103</Text>
           </View>
         </View>
+
+        <View className="h-8"></View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
