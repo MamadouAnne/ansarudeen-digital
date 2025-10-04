@@ -194,19 +194,26 @@ export default function NewsScreen() {
           {/* News Articles */}
           <View className="mb-6">
             {filteredNews.map((article) => (
-              <TouchableOpacity
+              <View
                 key={article.id}
-                onPress={() => router.push(`/news/${article.id}`)}
-                className="bg-white rounded-3xl shadow-md border border-emerald-200/60 overflow-hidden mb-4"
+                className="rounded-3xl shadow-md border border-emerald-200/60 overflow-hidden mb-4"
               >
-                {/* Article Image */}
-                <Image
-                  source={{ uri: article.image }}
-                  className="w-full h-48"
-                  resizeMode="cover"
-                />
+                <TouchableOpacity
+                  onPress={() => router.push(`/news/${article.id}`)}
+                >
+                  {/* Article Image */}
+                  <Image
+                    source={{ uri: article.image }}
+                    className="w-full h-48"
+                    resizeMode="cover"
+                  />
 
-                <View className="p-4">
+                  <LinearGradient
+                    colors={['#fffbeb', '#fef3c7']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    className="p-4"
+                  >
                   {/* Category Badge and Date */}
                   <View className="flex-row items-center justify-between mb-3">
                     <View className={`px-3 py-1 rounded-full border ${getCategoryColor(article.category)}`}>
@@ -250,8 +257,9 @@ export default function NewsScreen() {
                       <Text className="text-white text-base">→</Text>
                     </View>
                   </View>
-                </View>
-              </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             ))}
           </View>
         </View>

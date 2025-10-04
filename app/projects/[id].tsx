@@ -1,136 +1,82 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { getProjectById, Project } from '@/services/projects';
 
 const { width } = Dimensions.get('window');
-
-interface MediaItem {
-  type: 'image' | 'video';
-  uri: string;
-}
-
-interface Project {
-  id: number;
-  title: string;
-  titleArabic: string;
-  description: string;
-  fullDescription: string;
-  category: string;
-  icon: string;
-  media: MediaItem[];
-  status: 'ongoing' | 'planning' | 'completed';
-  progress: number;
-  budget: string;
-  targetAmount: number;
-  raisedAmount: number;
-  startDate: string;
-  donors: number;
-}
 
 export default function ProjectDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock project data - in a real app, this would come from an API
-  const projectsData: { [key: string]: Project } = {
-    '1': {
-      id: 1,
-      title: 'Sanitation Infrastructure',
-      titleArabic: 'البنية التحتية للصرف الصحي',
-      description: 'Modern pipeline network with automatic pumping system',
-      fullDescription: 'Setting up a synchronized and modern pipeline network with large pipes in the main arteries, connected to households through an automatic pumping system. Equipped with recovery stations connected to the ONAS network, discharging into the sea or designated locations. This comprehensive infrastructure project will significantly improve community health and sanitation standards.',
-      category: 'Infrastructure',
-      icon: '🚰',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/059669/FFFFFF?text=Pipeline+Network' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/047857/FFFFFF?text=Pumping+System' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/065f46/FFFFFF?text=Recovery+Station' },
-      ],
-      status: 'planning',
-      progress: 25,
-      budget: '$2.5M',
-      targetAmount: 2500000,
-      raisedAmount: 625000,
-      startDate: 'Q3 2025',
-      donors: 145,
-    },
-    '2': {
-      id: 2,
-      title: 'Environment & Beautification',
-      titleArabic: 'البيئة والتجميل',
-      description: 'Creating public spaces and reforesting with shade trees',
-      fullDescription: 'Creating public spaces, reforesting with shade trees and flowers to beautify the holy city. Planting coconut trees around the mosque and along the main avenues to enhance the spiritual atmosphere. This initiative will transform our community into a green paradise while providing shade and beauty for generations to come.',
-      category: 'Environment',
-      icon: '🌳',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/10b981/FFFFFF?text=Public+Spaces' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/059669/FFFFFF?text=Tree+Planting' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/047857/FFFFFF?text=Flowers+Garden' },
-      ],
-      status: 'ongoing',
-      progress: 60,
-      budget: '$850K',
-      targetAmount: 850000,
-      raisedAmount: 510000,
-      startDate: 'Jan 2025',
-      donors: 298,
-    },
-    '3': {
-      id: 3,
-      title: 'Agriculture with Tool Baye',
-      titleArabic: 'الزراعة مع أداة باي',
-      description: 'Modern agricultural practices to support local farmers',
-      fullDescription: 'Implementing modern agricultural practices and tools to support local farmers and enhance food security for the community. Using innovative farming techniques and sustainable methods. This project empowers our farming community with cutting-edge tools and knowledge to increase productivity and sustainability.',
-      category: 'Agriculture',
-      icon: '🌾',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/f59e0b/FFFFFF?text=Farming+Tools' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/d97706/FFFFFF?text=Crop+Fields' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/b45309/FFFFFF?text=Harvest+Season' },
-      ],
-      status: 'ongoing',
-      progress: 45,
-      budget: '$450K',
-      targetAmount: 450000,
-      raisedAmount: 202500,
-      startDate: 'Mar 2025',
-      donors: 187,
-    },
-    '4': {
-      id: 4,
-      title: 'Grand Mosque Renovation',
-      titleArabic: 'تجديد المسجد الكبير',
-      description: 'Comprehensive renovation while preserving historical significance',
-      fullDescription: 'Comprehensive renovation and modernization of the Grand Mosque while preserving its historical and spiritual significance. Upgrading facilities, restoring architectural elements, and improving accessibility for worshippers. This sacred project honors our heritage while embracing modern amenities for enhanced worship experience.',
-      category: 'Religious',
-      icon: '🕌',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/059669/FFFFFF?text=Mosque+Exterior' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/047857/FFFFFF?text=Interior+Design' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/065f46/FFFFFF?text=Minaret+Restoration' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x250/10b981/FFFFFF?text=Prayer+Hall' },
-      ],
-      status: 'planning',
-      progress: 15,
-      budget: '$3.2M',
-      targetAmount: 3200000,
-      raisedAmount: 480000,
-      startDate: 'Q4 2025',
-      donors: 342,
-    },
+  useEffect(() => {
+    loadProject();
+  }, [id]);
+
+  const loadProject = async () => {
+    try {
+      setLoading(true);
+      const projectId = parseInt(id as string, 10);
+      const data = await getProjectById(projectId);
+      console.log('Loaded project data:', data);
+      console.log('Media array:', data?.media);
+      console.log('Media count:', data?.media?.length);
+      setProject(data);
+    } catch (error) {
+      console.error('Error loading project:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const project = projectsData[id as string];
+  if (loading) {
+    return (
+      <View className="flex-1 bg-slate-50">
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <View className="h-20 bg-emerald-600" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}>
+          <View className="flex-row items-center px-4">
+            <TouchableOpacity onPress={() => router.back()}>
+              <View className="flex-row items-center">
+                <Text className="text-white text-lg font-bold mr-2">←</Text>
+                <Text className="text-white text-base font-semibold">Back</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#059669" />
+          <Text className="text-slate-600 mt-4">Loading project...</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (!project) {
     return (
-      <View className="flex-1 bg-slate-50 items-center justify-center">
-        <Text className="text-slate-600 text-lg">Project not found</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4">
-          <Text className="text-emerald-600 font-bold">Go Back</Text>
-        </TouchableOpacity>
+      <View className="flex-1 bg-slate-50">
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <View className="h-20 bg-emerald-600" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}>
+          <View className="flex-row items-center px-4">
+            <TouchableOpacity onPress={() => router.back()}>
+              <View className="flex-row items-center">
+                <Text className="text-white text-lg font-bold mr-2">←</Text>
+                <Text className="text-white text-base font-semibold">Back</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-slate-600 text-lg">Project not found</Text>
+          <TouchableOpacity onPress={() => router.back()} className="mt-4">
+            <Text className="text-emerald-600 font-bold">Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -190,39 +136,45 @@ export default function ProjectDetailsScreen() {
         </View>
 
         {/* Media Carousel */}
-        <View className="relative bg-slate-200">
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / width);
-              setActiveMediaIndex(index);
-            }}
-          >
-            {project.media.map((media, index) => (
-              <View key={index} style={{ width }}>
-                <Image
-                  source={{ uri: media.uri }}
-                  className="h-64 bg-slate-300"
-                  resizeMode="cover"
-                />
-              </View>
-            ))}
-          </ScrollView>
+        {project.media && project.media.length > 0 ? (
+          <View className="relative bg-slate-200">
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                setActiveMediaIndex(index);
+              }}
+            >
+              {project.media.map((media, index) => (
+                <View key={index} style={{ width }}>
+                  <Image
+                    source={{ uri: media.uri }}
+                    style={{ width, height: 256 }}
+                    resizeMode="cover"
+                  />
+                </View>
+              ))}
+            </ScrollView>
 
-          {/* Media Indicators */}
-          <View className="absolute bottom-4 left-0 right-0 flex-row justify-center">
-            {project.media.map((_, index) => (
-              <View
-                key={index}
-                className={`h-2 rounded-full mx-1 ${
-                  activeMediaIndex === index ? 'w-6 bg-white' : 'w-2 bg-white/50'
-                }`}
-              />
-            ))}
+            {/* Media Indicators */}
+            <View className="absolute bottom-4 left-0 right-0 flex-row justify-center">
+              {project.media.map((_, index) => (
+                <View
+                  key={index}
+                  className={`h-2 rounded-full mx-1 ${
+                    activeMediaIndex === index ? 'w-6 bg-white' : 'w-2 bg-white/50'
+                  }`}
+                />
+              ))}
+            </View>
           </View>
-        </View>
+        ) : (
+          <View className="bg-slate-200 h-64 items-center justify-center">
+            <Text className="text-slate-500">No images available</Text>
+          </View>
+        )}
 
         <View className="px-5 py-5">
           {/* Project Header */}

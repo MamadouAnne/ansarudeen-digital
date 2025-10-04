@@ -1,79 +1,29 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter, Stack } from 'expo-router';
-
-interface Project {
-  id: number;
-  title: string;
-  titleArabic: string;
-  description: string;
-  category: string;
-  icon: string;
-  status: 'ongoing' | 'planning' | 'completed';
-  progress: number;
-  budget: string;
-  targetAmount: number;
-  raisedAmount: number;
-}
+import { getAllProjects, Project } from '@/services/projects';
 
 export default function ProjectsScreen() {
   const router = useRouter();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const projects: Project[] = [
-    {
-      id: 1,
-      title: 'Sanitation Infrastructure',
-      titleArabic: 'البنية التحتية للصرف الصحي',
-      description: 'Modern pipeline network with automatic pumping system',
-      category: 'Infrastructure',
-      icon: '🚰',
-      status: 'planning',
-      progress: 25,
-      budget: '$2.5M',
-      targetAmount: 2500000,
-      raisedAmount: 625000,
-    },
-    {
-      id: 2,
-      title: 'Environment & Beautification',
-      titleArabic: 'البيئة والتجميل',
-      description: 'Creating public spaces and reforesting with shade trees',
-      category: 'Environment',
-      icon: '🌳',
-      status: 'ongoing',
-      progress: 60,
-      budget: '$850K',
-      targetAmount: 850000,
-      raisedAmount: 510000,
-    },
-    {
-      id: 3,
-      title: 'Agriculture with Tool Baye',
-      titleArabic: 'الزراعة مع أداة باي',
-      description: 'Modern agricultural practices to support local farmers',
-      category: 'Agriculture',
-      icon: '🌾',
-      status: 'ongoing',
-      progress: 45,
-      budget: '$450K',
-      targetAmount: 450000,
-      raisedAmount: 202500,
-    },
-    {
-      id: 4,
-      title: 'Grand Mosque Renovation',
-      titleArabic: 'تجديد المسجد الكبير',
-      description: 'Comprehensive renovation while preserving historical significance',
-      category: 'Religious',
-      icon: '🕌',
-      status: 'planning',
-      progress: 15,
-      budget: '$3.2M',
-      targetAmount: 3200000,
-      raisedAmount: 480000,
-    },
-  ];
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllProjects();
+      setProjects(data);
+    } catch (error) {
+      console.error('Error loading projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -160,7 +110,17 @@ export default function ProjectsScreen() {
         </View>
 
         <View className="px-5 -mt-6">
+          {/* Loading State */}
+          {loading && (
+            <View className="py-20 items-center justify-center">
+              <ActivityIndicator size="large" color="#059669" />
+              <Text className="text-slate-600 mt-4">Loading projects...</Text>
+            </View>
+          )}
+
           {/* Projects Summary */}
+          {!loading && (
+          <>
           <View className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-300/50 mb-5 shadow-sm">
             <View className="flex-row items-center mb-4">
               <Text className="text-2xl mr-2">📊</Text>
@@ -290,6 +250,8 @@ export default function ProjectsScreen() {
               </Link>
             </View>
           </View>
+          </>
+          )}
         </View>
 
         <View className="h-8"></View>
