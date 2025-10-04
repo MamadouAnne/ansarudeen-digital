@@ -24,13 +24,14 @@ export default function MembershipScreen() {
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
-        <LinearGradient
-          colors={['#059669', '#047857', '#065f46']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="px-6 pb-12 relative overflow-hidden"
-          style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
-        >
+        <View className="h-64">
+          <LinearGradient
+            colors={['#059669', '#047857', '#065f46']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="px-6 h-full relative overflow-hidden"
+            style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
+          >
           {/* Decorative Islamic pattern */}
           <View className="absolute inset-0 opacity-10">
             <View className="absolute top-4 right-4 w-28 h-28 border-4 border-white rounded-full" />
@@ -38,7 +39,7 @@ export default function MembershipScreen() {
             <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
           </View>
 
-          <View className="items-center relative z-10 mt-8">
+          <View className="items-center relative z-10 mt-4">
             <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
               <Text className="text-3xl">🎫</Text>
             </View>
@@ -49,10 +50,11 @@ export default function MembershipScreen() {
               بِطَاقَة الْعُضْوِيَّة • Member Card
             </Text>
             <Text className="text-white text-base font-medium">
-              Your official Ansarudeen Digital ID
+              Your official Ansarudeen International ID
             </Text>
           </View>
-        </LinearGradient>
+          </LinearGradient>
+        </View>
 
         {/* Premium Islamic Membership Card */}
         <View className="mx-5 -mt-8 mb-6 relative z-10">

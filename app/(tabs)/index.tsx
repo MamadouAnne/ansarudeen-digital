@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StatusBar, Platform, Dimensions } from 'react-native';
-import { Link } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Link } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -44,7 +44,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveSlide((prev) => {
-        const next = (prev + 1) % 2; // 2 slides total
+        const next = (prev + 1) % 3; // 3 slides total
         carouselRef.current?.scrollTo({ x: next * width, animated: true });
         return next;
       });
@@ -57,9 +57,13 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        className="flex-1" 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
         {/* Header Carousel */}
-        <View>
+        <View className="flex-1">
           <ScrollView
             ref={carouselRef}
             horizontal
@@ -67,31 +71,25 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
+            style={{ flex: 1 }}
           >
             {/* Slide 1: Header */}
             <View style={{ width }}>
-              <View className="border-4 border-red-500">
+              <View className="h-full rounded-b-2xl overflow-hidden">
                 <LinearGradient
                   colors={['#059669', '#047857', '#065f46']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
-                  className="px-6 pb-12"
-                  style={{ paddingTop }}
+                  className="flex-1"
                 >
-                {/* Decorative Islamic pattern overlay */}
-                <View className="absolute inset-0 opacity-10">
-                  <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
-                  <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
-                  <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
-                </View>
 
-                <View className="items-center text-center relative z-10 mt-4 mb-8">
+                <View className="items-center justify-center h-full relative z-10">
                   {/* Crescent and Star Symbol */}
                   <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
                     <Text className="text-3xl">☪️</Text>
                   </View>
                   <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
-                    Ansarudeen Digital
+                    Ansarudeen International
                   </Text>
                   <Text className="text-emerald-100 text-sm font-medium mb-2">
                     أنصار الدين • Helpers of the Faith
@@ -108,13 +106,19 @@ export default function HomeScreen() {
 
             {/* Slide 2: Fundraising */}
             <View style={{ width }}>
-              <LinearGradient
-                colors={['#059669', '#047857', '#065f46']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="px-6 pb-12"
-                style={{ paddingTop }}
-              >
+              <View className="h-full rounded-b-2xl overflow-hidden">
+                <LinearGradient
+                  colors={['#059669', '#047857', '#065f46']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  className="flex-1"
+                >
+                {/* Decorative Islamic pattern overlay */}
+                <View className="absolute inset-0 opacity-10">
+                  <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
+                  <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
+                  <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
+                </View>
                   {/* Decorative Islamic pattern overlay */}
                   <View className="absolute inset-0 opacity-10">
                     <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
@@ -122,78 +126,154 @@ export default function HomeScreen() {
                     <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
                   </View>
 
-                  <View className="relative z-10 mt-4 mb-8">
-                    {/* Content Card */}
-                    <View className="bg-white/10 backdrop-blur-sm rounded-2xl p-2.5 border border-white/30 shadow-lg">
-                      {/* Header */}
-                      <View className="flex-row items-center justify-center mb-1">
-                        <View className="w-6 h-6 bg-white/90 rounded-full items-center justify-center mr-1.5">
-                          <Text className="text-sm">🏗️</Text>
-                        </View>
-                        <Text className="text-white text-xs font-bold uppercase tracking-wide">
-                          Active Campaign
-                        </Text>
-                      </View>
-
-                      <Text className="text-white text-base font-bold mb-0.5 text-center">
-                        Masjid Expansion Project
-                      </Text>
-                      <Text className="text-emerald-100 text-xs mb-1 text-center">
-                        Help us expand our community center
-                      </Text>
-
-                      {/* Progress Stats */}
-                      <View className="flex-row justify-between mb-1 px-2">
-                        <View>
-                          <Text className="text-white/80 text-xs">Raised</Text>
-                          <Text className="text-white font-bold text-xs">{formatCurrency(45000)}</Text>
-                        </View>
-                        <View className="items-end">
-                          <Text className="text-emerald-200 text-xs">Goal</Text>
-                          <Text className="text-emerald-100 font-bold text-xs">{formatCurrency(100000)}</Text>
-                        </View>
-                      </View>
-
-                      {/* Progress Bar */}
-                      <View className="mb-1">
-                        <View className="h-2 bg-white/20 rounded-full overflow-hidden border border-white/40 shadow-inner">
-                          <LinearGradient
-                            colors={['#ffffff', '#d1fae5', '#a7f3d0']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            className="h-full rounded-full"
-                            style={{ width: '45%' }}
-                          />
-                        </View>
-                        <Text className="text-white text-xs mt-0.5 font-bold text-center">
-                          45% Complete
-                        </Text>
-                      </View>
-
-                      {/* Donate Button */}
-                      <Link href="/projects" asChild>
-                        <TouchableOpacity>
-                          <LinearGradient
-                            colors={['#ffffff', '#f0fdf4']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            className="py-1.5 px-5 rounded-full shadow-lg"
-                          >
-                            <Text className="text-emerald-700 font-bold text-center text-xs">
-                              💝 Donate Now
+                  <View className="flex-1">
+                    {/* Project Card */}
+                    <View className="bg-white rounded-b-2xl shadow-lg border-2 border-emerald-100 overflow-hidden">
+                      {/* Project Header */}
+                      <View className="p-3 border-b border-slate-100">
+                        <View className="flex-row items-center justify-between mb-2">
+                          <View className="flex-row items-center flex-1">
+                            <View className="w-10 h-10 bg-emerald-100 rounded-xl items-center justify-center mr-2">
+                              <Text className="text-xl">🕌</Text>
+                            </View>
+                            <View className="flex-1">
+                              <Text className="text-base font-bold text-slate-800">Masjid Expansion</Text>
+                              <Text className="text-emerald-600 text-xs font-medium">توسعة المسجد</Text>
+                            </View>
+                          </View>
+                          <View className="px-2 py-1 rounded-full border bg-emerald-100 border-emerald-300">
+                            <Text className="text-xs font-extrabold text-emerald-700">
+                              Active
                             </Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-                      </Link>
+                          </View>
+                        </View>
+                        <View className="bg-slate-50 rounded-lg px-2 py-1">
+                          <Text className="text-slate-600 text-xs font-semibold">Infrastructure</Text>
+                        </View>
+                      </View>
+
+                      {/* Progress Section */}
+                      <View className="p-3">
+                        <View className="mb-2">
+                          <View className="flex-row justify-between mb-1">
+                            <Text className="text-slate-600 text-xs font-bold">Progress</Text>
+                            <Text className="text-emerald-600 text-xs font-extrabold">45%</Text>
+                          </View>
+                          <View className="bg-slate-200 rounded-full h-1.5">
+                            <View
+                              className="bg-emerald-600 h-1.5 rounded-full"
+                              style={{ width: '45%' }}
+                            />
+                          </View>
+                        </View>
+
+                        {/* Project Info */}
+                        <View className="flex-row justify-between space-x-2 mb-2">
+                          <View className="bg-emerald-50 rounded-lg p-2 flex-1 border border-emerald-200">
+                            <Text className="text-emerald-600 text-xs font-bold">Raised</Text>
+                            <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(45000)}</Text>
+                          </View>
+                          <View className="bg-amber-50 rounded-lg p-2 flex-1 border border-amber-200 ml-2">
+                            <Text className="text-amber-600 text-xs font-bold">Goal</Text>
+                            <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(100000)}</Text>
+                          </View>
+                        </View>
+
+                        {/* Donate Button */}
+                        <Link href="/projects" asChild>
+                          <TouchableOpacity>
+                            <LinearGradient
+                              colors={['#059669', '#047857']}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                              className="py-2 rounded-lg shadow-md"
+                            >
+                              <Text className="text-white text-center font-extrabold text-sm">Donate Now</Text>
+                            </LinearGradient>
+                          </TouchableOpacity>
+                        </Link>
+                      </View>
                     </View>
                   </View>
-              </LinearGradient>
+                </LinearGradient>
+              </View>
+            </View>
+
+            {/* Slide 3: News */}
+            <View style={{ width }}>
+              <View className="h-full rounded-b-2xl overflow-hidden">
+                <LinearGradient
+                  colors={['#059669', '#047857', '#065f46']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  className="flex-1"
+                >
+
+                <View className="relative z-10 h-full">
+                  {/* News Card */}
+                  <View className="bg-white rounded-b-2xl overflow-hidden border-2 border-emerald-100 shadow-md h-full">
+                    <View className="p-3">
+                      {/* Category Badge */}
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                          <Text className="text-emerald-700 text-xs font-extrabold">Education</Text>
+                        </View>
+                        <Text className="text-slate-400 text-xs font-semibold">1 week ago</Text>
+                      </View>
+
+                      {/* Title */}
+                      <Text className="text-base font-bold text-slate-800 mb-0.5">Youth Program Launched</Text>
+                      <Text className="text-emerald-600 text-xs font-medium mb-2">برنامج الشباب</Text>
+
+                      {/* Excerpt */}
+                      <Text className="text-slate-600 text-xs leading-4 mb-2">
+                        New mentorship initiative helping young Muslims grow in faith and knowledge
+                      </Text>
+
+                      {/* Meta Info */}
+                      <View className="flex-row items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                        <View className="flex-row items-center">
+                          <View className="w-6 h-6 bg-emerald-100 rounded-full items-center justify-center mr-1.5">
+                            <Text className="text-emerald-600 text-xs font-bold">E</Text>
+                          </View>
+                          <Text className="text-slate-700 text-xs font-bold">Education Team</Text>
+                        </View>
+                        <Text className="text-slate-500 text-xs font-semibold">4 min</Text>
+                      </View>
+
+                      {/* Action Buttons */}
+                      <View className="flex-row items-center justify-between">
+                        <TouchableOpacity className="flex-row items-center">
+                          <Text className="text-sm mr-0.5 opacity-40">❤️</Text>
+                          <Text className="text-slate-700 font-bold text-xs">312</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity className="flex-row items-center">
+                          <Text className="text-sm mr-0.5">💬</Text>
+                          <Text className="text-slate-700 font-bold text-xs">67</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity className="flex-row items-center">
+                          <Text className="text-sm mr-0.5">📤</Text>
+                          <Text className="text-slate-700 font-bold text-xs">Share</Text>
+                        </TouchableOpacity>
+                        <Link href="/news" asChild>
+                          <TouchableOpacity>
+                            <View className="bg-emerald-600 px-3 py-1.5 rounded-lg">
+                              <Text className="text-white font-extrabold text-xs">Read</Text>
+                            </View>
+                          </TouchableOpacity>
+                        </Link>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+                </LinearGradient>
+              </View>
             </View>
           </ScrollView>
 
           {/* Pagination Dots */}
           <View className="absolute bottom-3 left-0 right-0 flex-row justify-center">
-            {[0, 1].map((index) => (
+            {[0, 1, 2].map((index) => (
               <View
                 key={index}
                 className={`h-2 rounded-full mx-1 ${

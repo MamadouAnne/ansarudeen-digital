@@ -47,13 +47,14 @@ export default function DonationTrackerScreen() {
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
-        <LinearGradient
-          colors={['#059669', '#047857', '#065f46']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="px-6 pb-12 relative overflow-hidden"
-          style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
-        >
+        <View className="h-64">
+          <LinearGradient
+            colors={['#059669', '#047857', '#065f46']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="px-6 h-full relative overflow-hidden"
+            style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
+          >
           {/* Decorative Islamic pattern */}
           <View className="absolute inset-0 opacity-10">
             <View className="absolute top-4 right-4 w-28 h-28 border-4 border-white rounded-full" />
@@ -87,7 +88,8 @@ export default function DonationTrackerScreen() {
               </Text>
             </View>
           </View>
-        </LinearGradient>
+          </LinearGradient>
+        </View>
 
         {/* Tab Selector */}
         <View className="px-5 -mt-8 mb-4 relative z-10">

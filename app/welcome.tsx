@@ -204,7 +204,7 @@ export default function WelcomeScreen() {
               </Text>
               <View className="bg-black rounded-xl px-6 py-3 mb-4 md:mb-6">
                 <Text className="text-3xl md:text-4xl font-bold text-white text-center tracking-tight">
-                  Ansarudeen Digital
+                  Ansarudeen International
                 </Text>
               </View>
 

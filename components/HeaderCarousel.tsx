@@ -93,7 +93,7 @@ export default function HeaderCarousel({ items, userName }: HeaderCarouselProps)
             <Text className="text-3xl">☪️</Text>
           </View>
           <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
-            Ansarudeen Digital
+            Ansarudeen International
           </Text>
           <Text className="text-emerald-100 text-sm font-medium mb-2">
             أنصار الدين • Helpers of the Faith
@@ -172,7 +172,7 @@ export default function HeaderCarousel({ items, userName }: HeaderCarouselProps)
             <Text className="text-3xl">☪️</Text>
           </View>
           <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
-            Ansarudeen Digital
+            Ansarudeen International
           </Text>
           <Text className="text-emerald-100 text-sm font-medium mb-2">
             أنصار الدين • Helpers of the Faith
@@ -239,7 +239,7 @@ export default function HeaderCarousel({ items, userName }: HeaderCarouselProps)
             <Text className="text-3xl">☪️</Text>
           </View>
           <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
-            Ansarudeen Digital
+            Ansarudeen International
           </Text>
           <Text className="text-emerald-100 text-sm font-medium mb-2">
             أنصار الدين • Helpers of the Faith
@@ -300,7 +300,7 @@ export default function HeaderCarousel({ items, userName }: HeaderCarouselProps)
   };
 
   return (
-    <View className="bg-slate-50">
+    <View className="bg-slate-50 h-64">
       <LinearGradient
         colors={['#059669', '#047857', '#065f46']}
         start={{ x: 0, y: 0 }}
