@@ -231,59 +231,59 @@ export default function HomeScreen() {
           >
             {/* Projects Card */}
             <Link href="/projects" asChild>
-              <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-teal-100 shadow-sm mr-3 w-32">
-                <View className="w-12 h-12 bg-teal-100 rounded-2xl items-center justify-center mb-2">
-                  <Text className="text-2xl">🏗️</Text>
+              <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-teal-100 shadow-sm mr-3 w-28">
+                <View className="w-10 h-10 bg-teal-100 rounded-xl items-center justify-center mb-1.5">
+                  <Text className="text-xl">🏗️</Text>
                 </View>
-                <Text className="text-slate-800 font-bold text-sm mb-0.5">Projects</Text>
+                <Text className="text-slate-800 font-bold text-xs mb-0.5">Projects</Text>
                 <Text className="text-slate-500 text-xs">Work</Text>
               </TouchableOpacity>
             </Link>
 
             {/* News/Blog Card */}
             <Link href="/news" asChild>
-              <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-emerald-100 shadow-sm mr-3 w-32">
-                <View className="w-12 h-12 bg-emerald-100 rounded-2xl items-center justify-center mb-2">
-                  <Text className="text-2xl">📰</Text>
+              <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-emerald-100 shadow-sm mr-3 w-28">
+                <View className="w-10 h-10 bg-emerald-100 rounded-xl items-center justify-center mb-1.5">
+                  <Text className="text-xl">📰</Text>
                 </View>
-                <Text className="text-slate-800 font-bold text-sm mb-0.5">News</Text>
+                <Text className="text-slate-800 font-bold text-xs mb-0.5">News</Text>
                 <Text className="text-slate-500 text-xs">Updates</Text>
               </TouchableOpacity>
             </Link>
 
             {/* Events Card */}
-            <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-sky-100 shadow-sm mr-3 w-32">
-              <View className="w-12 h-12 bg-sky-100 rounded-2xl items-center justify-center mb-2">
-                <Text className="text-2xl">📅</Text>
+            <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-sky-100 shadow-sm mr-3 w-28">
+              <View className="w-10 h-10 bg-sky-100 rounded-xl items-center justify-center mb-1.5">
+                <Text className="text-xl">📅</Text>
               </View>
-              <Text className="text-slate-800 font-bold text-sm mb-0.5">Events</Text>
+              <Text className="text-slate-800 font-bold text-xs mb-0.5">Events</Text>
               <Text className="text-slate-500 text-xs">Gatherings</Text>
             </TouchableOpacity>
 
             {/* Resources Card */}
-            <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-amber-100 shadow-sm mr-3 w-32">
-              <View className="w-12 h-12 bg-amber-100 rounded-2xl items-center justify-center mb-2">
-                <Text className="text-2xl">📚</Text>
+            <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-amber-100 shadow-sm mr-3 w-28">
+              <View className="w-10 h-10 bg-amber-100 rounded-xl items-center justify-center mb-1.5">
+                <Text className="text-xl">📚</Text>
               </View>
-              <Text className="text-slate-800 font-bold text-sm mb-0.5">Resources</Text>
+              <Text className="text-slate-800 font-bold text-xs mb-0.5">Resources</Text>
               <Text className="text-slate-500 text-xs">Library</Text>
             </TouchableOpacity>
 
             {/* About Us Card */}
-            <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-purple-100 shadow-sm mr-3 w-32">
-              <View className="w-12 h-12 bg-purple-100 rounded-2xl items-center justify-center mb-2">
-                <Text className="text-2xl">🕌</Text>
+            <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-purple-100 shadow-sm mr-3 w-28">
+              <View className="w-10 h-10 bg-purple-100 rounded-xl items-center justify-center mb-1.5">
+                <Text className="text-xl">🕌</Text>
               </View>
-              <Text className="text-slate-800 font-bold text-sm mb-0.5">About Us</Text>
+              <Text className="text-slate-800 font-bold text-xs mb-0.5">About Us</Text>
               <Text className="text-slate-500 text-xs">Mission</Text>
             </TouchableOpacity>
 
             {/* Contact Card */}
-            <TouchableOpacity className="bg-white rounded-2xl p-4 border-2 border-rose-100 shadow-sm mr-3 w-32">
-              <View className="w-12 h-12 bg-rose-100 rounded-2xl items-center justify-center mb-2">
-                <Text className="text-2xl">📞</Text>
+            <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-rose-100 shadow-sm mr-3 w-28">
+              <View className="w-10 h-10 bg-rose-100 rounded-xl items-center justify-center mb-1.5">
+                <Text className="text-xl">📞</Text>
               </View>
-              <Text className="text-slate-800 font-bold text-sm mb-0.5">Contact</Text>
+              <Text className="text-slate-800 font-bold text-xs mb-0.5">Contact</Text>
               <Text className="text-slate-500 text-xs">Get in touch</Text>
             </TouchableOpacity>
           </ScrollView>
