@@ -151,7 +151,7 @@ export default function ProjectsScreen() {
               <Text className="text-white text-3xl font-bold mb-1">
                 Community Projects
               </Text>
-              <Text className="text-emerald-100 text-sm font-medium">
+              <Text className="text-emerald-100 text-sm font-medium mb-2">
                 المشاريع المجتمعية • Building Our Future
               </Text>
             </View>
@@ -159,9 +159,9 @@ export default function ProjectsScreen() {
           </LinearGradient>
         </View>
 
-        <View className="px-5 -mt-4">
+        <View className="px-5 -mt-6">
           {/* Projects Summary */}
-          <View className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border-2 border-emerald-200 mb-5">
+          <View className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-300/50 mb-5 shadow-sm">
             <View className="flex-row items-center mb-4">
               <Text className="text-2xl mr-2">📊</Text>
               <Text className="text-xl font-bold text-emerald-900">Overview</Text>
@@ -187,14 +187,14 @@ export default function ProjectsScreen() {
           </View>
 
           {/* Project Cards Grid */}
-          <View className="space-y-4 mb-6">
+          <View className="mb-6">
             {projects.map((project) => {
               const statusColors = getStatusColor(project.status);
               return (
                 <TouchableOpacity
                   key={project.id}
                   onPress={() => router.push(`/projects/${project.id}`)}
-                  className="bg-white rounded-3xl shadow-lg border-2 border-emerald-100 overflow-hidden"
+                  className="bg-white rounded-3xl shadow-md border border-emerald-200/60 overflow-hidden mb-4"
                 >
                   {/* Project Header */}
                   <View className="p-4">
@@ -265,7 +265,7 @@ export default function ProjectsScreen() {
           </View>
 
           {/* Support CTA */}
-          <View className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-3xl p-6 border-2 border-amber-200 mb-6">
+          <View className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-3xl p-6 border border-amber-300/50 mb-6 shadow-sm">
             <View className="items-center">
               <Text className="text-3xl mb-3">💝</Text>
               <Text className="text-2xl font-bold text-amber-900 mb-2 text-center">
