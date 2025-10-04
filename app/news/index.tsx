@@ -18,30 +18,54 @@ interface NewsArticle {
   comments: number;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function NewsScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
 
   const categories = ['All', 'Announcements', 'Events', 'Community', 'Education', 'Projects'];
 
   useEffect(() => {
-    fetchNewsArticles();
-  }, []);
+    fetchNewsArticles(true);
+  }, [selectedCategory]);
 
-  async function fetchNewsArticles() {
+  async function fetchNewsArticles(reset: boolean = false) {
     try {
-      setLoading(true);
-      const { data: articles, error } = await supabase
+      if (reset) {
+        setLoading(true);
+        setPage(0);
+        setNewsArticles([]);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const currentPage = reset ? 0 : page;
+      const from = currentPage * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+
+      let query = supabase
         .from('news_articles')
         .select(`
           *,
           news_media!inner (
             uri
           )
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      // Apply category filter if not 'All'
+      if (selectedCategory !== 'All') {
+        query = query.eq('category', selectedCategory);
+      }
+
+      const { data: articles, error, count } = await query;
 
       if (error) throw error;
 
@@ -60,17 +84,31 @@ export default function NewsScreen() {
         comments: article.comments,
       })) || [];
 
-      setNewsArticles(transformedArticles);
+      if (reset) {
+        setNewsArticles(transformedArticles);
+      } else {
+        setNewsArticles([...newsArticles, ...transformedArticles]);
+      }
+
+      setPage(currentPage + 1);
+      setHasMore(count ? (currentPage + 1) * ITEMS_PER_PAGE < count : false);
     } catch (error) {
       console.error('Error fetching news:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }
 
-  const filteredNews = selectedCategory === 'All'
-    ? newsArticles
-    : newsArticles.filter(article => article.category === selectedCategory);
+  function handleCategoryChange(category: string) {
+    setSelectedCategory(category);
+  }
+
+  function handleLoadMore() {
+    if (!loadingMore && hasMore) {
+      fetchNewsArticles(false);
+    }
+  }
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -169,7 +207,7 @@ export default function NewsScreen() {
               {categories.map((category) => (
                 <TouchableOpacity
                   key={category}
-                  onPress={() => setSelectedCategory(category)}
+                  onPress={() => handleCategoryChange(category)}
                   className={`mr-3 px-5 py-3 rounded-2xl ${
                     selectedCategory === category
                       ? 'bg-emerald-600 border border-emerald-700'
@@ -190,7 +228,7 @@ export default function NewsScreen() {
 
           {/* News Articles */}
           <View className="mb-6">
-            {filteredNews.map((article) => (
+            {newsArticles.map((article) => (
               <View
                 key={article.id}
                 className="rounded-3xl shadow-md border border-emerald-200/60 overflow-hidden mb-4"
@@ -258,6 +296,27 @@ export default function NewsScreen() {
                 </TouchableOpacity>
               </View>
             ))}
+
+            {/* Load More Button */}
+            {hasMore && (
+              <TouchableOpacity
+                onPress={handleLoadMore}
+                disabled={loadingMore}
+                className="bg-emerald-600 py-4 px-6 rounded-2xl items-center mt-2"
+              >
+                {loadingMore ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text className="text-white font-bold text-base">Load More Articles</Text>
+                )}
+              </TouchableOpacity>
+            )}
+
+            {!hasMore && newsArticles.length > 0 && (
+              <View className="py-4 items-center">
+                <Text className="text-slate-500 text-sm">No more articles to load</Text>
+              </View>
+            )}
           </View>
         </View>
 
