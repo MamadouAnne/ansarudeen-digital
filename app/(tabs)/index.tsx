@@ -108,7 +108,7 @@ export default function HomeScreen() {
             <View style={{ width }}>
               <View className="h-full rounded-b-2xl overflow-hidden">
                 <LinearGradient
-                  colors={['#8b5cf6', '#7c3aed', '#6d28d9']}
+                  colors={['#059669', '#047857', '#065f46']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   className="flex-1"
@@ -126,12 +126,11 @@ export default function HomeScreen() {
                     <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
                   </View>
 
-                  <View className="flex-1">
+                  <View className="flex-1" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 44 }}>
                     {/* Project Card */}
                     <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
                       {/* Project Header */}
                       <View className="p-3 border-b border-slate-100">
-                        <View className="h-12 mb-2"></View>
                         <View className="flex-row items-center justify-between mb-2">
                           <View className="flex-row items-center flex-1">
                             <View className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl items-center justify-center mr-3 border-2 border-emerald-300 shadow-sm">
