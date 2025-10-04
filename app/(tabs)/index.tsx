@@ -147,8 +147,9 @@ export default function HomeScreen() {
                             </Text>
                           </View>
                         </View>
-                        <View className="bg-slate-50 rounded-lg px-2 py-1">
-                          <Text className="text-slate-600 text-xs font-semibold">Infrastructure</Text>
+                        <View className="bg-slate-50 rounded-lg px-2 py-1 flex-row items-center">
+                          <Text className="text-base mr-1">🕌</Text>
+                          <Text className="text-slate-600 text-xs font-semibold">Masjid Expansion</Text>
                         </View>
                       </View>
 
