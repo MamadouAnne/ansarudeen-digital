@@ -144,7 +144,7 @@ export default function HeaderCarousel({ items, userName }: HeaderCarouselProps)
             </Text>
           </View>
 
-          <Link href="/projects" asChild>
+          <Link href="/projects/" asChild>
             <TouchableOpacity className="bg-white py-3 px-6 rounded-full mt-2">
               <Text className="text-emerald-700 font-bold text-center text-base">
                 Donate Now
@@ -274,7 +274,7 @@ export default function HeaderCarousel({ items, userName }: HeaderCarouselProps)
             <Text className="text-emerald-100 font-medium text-sm">{item.date}</Text>
           </View>
 
-          <Link href="/news" asChild>
+          <Link href="/news/" asChild>
             <TouchableOpacity className="bg-white py-3 px-6 rounded-full">
               <Text className="text-emerald-700 font-bold text-center text-base">
                 Read More

@@ -177,7 +177,7 @@ export default function HomeScreen() {
                         </View>
 
                         {/* Donate Button */}
-                        <Link href="/projects" asChild>
+                        <Link href="/projects/" asChild>
                           <TouchableOpacity>
                             <LinearGradient
                               colors={['#059669', '#047857']}
@@ -229,7 +229,7 @@ export default function HomeScreen() {
             className="px-4"
           >
             {/* Projects Card */}
-            <Link href="/projects" asChild>
+            <Link href="/projects/" asChild>
               <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-teal-100 shadow-sm mr-3 w-28">
                 <View className="w-10 h-10 bg-teal-100 rounded-xl items-center justify-center mb-1.5">
                   <Text className="text-xl">🏗️</Text>
@@ -240,7 +240,7 @@ export default function HomeScreen() {
             </Link>
 
             {/* News/Blog Card */}
-            <Link href="/news" asChild>
+            <Link href="/news/" asChild>
               <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-emerald-100 shadow-sm mr-3 w-28">
                 <View className="w-10 h-10 bg-emerald-100 rounded-xl items-center justify-center mb-1.5">
                   <Text className="text-xl">📰</Text>
