@@ -91,18 +91,29 @@ export default function NewsScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-slate-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#059669" />
-        <Text className="text-slate-600 mt-4">Loading news...</Text>
+      <View className="flex-1 bg-emerald-600 items-center justify-center">
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#059669' }
+          }}
+        />
+        <ActivityIndicator size="large" color="#ffffff" />
+        <Text className="text-white mt-4">Loading news...</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-slate-50">
-      <Stack.Screen options={{ headerShown: false }} />
+    <View className="flex-1 bg-emerald-600">
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#059669' }
+        }}
+      />
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ backgroundColor: '#f8fafc' }}>
         {/* Islamic-themed Header */}
         <View className="h-56">
           <LinearGradient

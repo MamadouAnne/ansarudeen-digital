@@ -94,18 +94,30 @@ export default function NewsDetailsScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-slate-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#059669" />
-        <Text className="text-slate-600 mt-4">Loading article...</Text>
+      <View className="flex-1 bg-emerald-600 items-center justify-center">
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#059669' }
+          }}
+        />
+        <ActivityIndicator size="large" color="#ffffff" />
+        <Text className="text-white mt-4">Loading article...</Text>
       </View>
     );
   }
 
   if (!article) {
     return (
-      <View className="flex-1 bg-slate-50 items-center justify-center">
-        <Text className="text-slate-600 text-lg">Article not found</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4">
+      <View className="flex-1 bg-emerald-600 items-center justify-center">
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#059669' }
+          }}
+        />
+        <Text className="text-white text-lg">Article not found</Text>
+        <TouchableOpacity onPress={() => router.back()} className="mt-4 bg-white px-6 py-3 rounded-full">
           <Text className="text-emerald-600 font-bold">Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -132,10 +144,15 @@ export default function NewsDetailsScreen() {
   const categoryColors = getCategoryColor(article.category);
 
   return (
-    <View className="flex-1 bg-slate-50">
-      <Stack.Screen options={{ headerShown: false }} />
+    <View className="flex-1 bg-emerald-600">
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#059669' }
+        }}
+      />
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ backgroundColor: '#f8fafc' }}>
         {/* Header with Back Button */}
         <View className="h-20 bg-emerald-600" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}>
           <View className="flex-row items-center px-4">
