@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -13,14 +14,14 @@ interface NewsMedia {
 interface NewsArticle {
   id: number;
   title: string;
-  titleArabic: string;
+  title_arabic: string;
   content: string;
   category: string;
   media: NewsMedia[];
   author: string;
-  authorBio: string;
+  author_bio: string;
   date: string;
-  readTime: string;
+  read_time: string;
   likes: number;
   comments: number;
   tags: string[];
@@ -31,171 +32,74 @@ export default function NewsDetailsScreen() {
   const router = useRouter();
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [article, setArticle] = useState<NewsArticle | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock news data - in a real app, this would come from an API
-  const newsData: { [key: string]: NewsArticle } = {
-    '1': {
-      id: 1,
-      title: 'Grand Mosque Renovation Project Announced',
-      titleArabic: 'الإعلان عن مشروع تجديد المسجد الكبير',
-      content: `Our community has come together to support this monumental project that will enhance the worship experience for all members. The Grand Mosque renovation project represents a significant milestone in our community's development.
+  useEffect(() => {
+    fetchArticle();
+  }, [id]);
 
-The renovation will include:
-• Modern climate control systems for year-round comfort
-• Upgraded audio and lighting systems
-• Restoration of traditional architectural elements
-• Expanded prayer areas to accommodate more worshippers
-• Improved accessibility features for elderly and disabled members
-• Beautiful landscaping around the mosque grounds
+  async function fetchArticle() {
+    try {
+      setLoading(true);
+      const { data: articleData, error: articleError } = await supabase
+        .from('news_articles')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-This project has been in planning for over two years, with extensive consultations with community members, Islamic scholars, and architectural experts. We are committed to preserving the spiritual essence and historical significance of our beloved mosque while incorporating modern amenities that will serve our growing community for generations to come.
+      if (articleError) throw articleError;
 
-The estimated timeline for completion is 18 months, and we invite all community members to participate in this blessed endeavor through donations, volunteering, and prayers for its successful completion.`,
-      category: 'Announcements',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Mosque+Exterior' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/047857/FFFFFF?text=Interior+Design' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/065f46/FFFFFF?text=Prayer+Hall' },
-      ],
-      author: 'Admin Team',
-      authorBio: 'Official community administration',
-      date: 'March 15, 2025',
-      readTime: '5 min read',
-      likes: 234,
-      comments: 45,
-      tags: ['Mosque', 'Renovation', 'Community'],
-    },
-    '2': {
-      id: 2,
-      title: 'Community Iftar - Join Us This Ramadan',
-      titleArabic: 'إفطار جماعي - انضم إلينا هذا رمضان',
-      content: `We invite all community members to join us for daily Iftar gatherings during the blessed month of Ramadan. This is a wonderful opportunity to strengthen our bonds of brotherhood and sisterhood while sharing the spiritual experience of breaking fast together.
+      const { data: mediaData, error: mediaError } = await supabase
+        .from('news_media')
+        .select('*')
+        .eq('news_article_id', id)
+        .order('display_order', { ascending: true });
 
-Schedule and Details:
-• Daily Iftar from Maghrib prayer
-• Delicious traditional meals prepared by community volunteers
-• Special programs for children during Taraweeh
-• Weekend lectures by visiting scholars
-• Charity drive for those in need
+      if (mediaError) throw mediaError;
 
-Everyone is welcome, and we especially encourage families to attend. There is no cost to participate, though donations are welcome to help cover expenses and support our charitable initiatives.
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('news_tags')
+        .select('*')
+        .eq('news_article_id', id);
 
-Please register in advance so we can prepare adequate food and seating arrangements. Registration forms are available at the mosque office or online through our community portal.
+      if (tagsError) throw tagsError;
 
-Join us in making this Ramadan a truly memorable and spiritually enriching experience for our entire community.`,
-      category: 'Events',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/10b981/FFFFFF?text=Iftar+Gathering' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Community+Meal' },
-      ],
-      author: 'Events Committee',
-      authorBio: 'Organizing community events and gatherings',
-      date: 'March 12, 2025',
-      readTime: '3 min read',
-      likes: 189,
-      comments: 32,
-      tags: ['Ramadan', 'Iftar', 'Events'],
-    },
-    '3': {
-      id: 3,
-      title: 'Youth Islamic Studies Program Success',
-      titleArabic: 'نجاح برنامج الدراسات الإسلامية للشباب',
-      content: `The inaugural semester of our Youth Islamic Studies Program has concluded with remarkable success. Over 150 students participated in comprehensive courses covering Quran recitation, Arabic language, Islamic history, and moral education.
+      const transformedArticle: NewsArticle = {
+        id: articleData.id,
+        title: articleData.title,
+        title_arabic: articleData.title_arabic,
+        content: articleData.content,
+        category: articleData.category,
+        media: mediaData.map((m: any) => ({
+          type: m.type,
+          uri: m.uri,
+        })),
+        author: articleData.author,
+        author_bio: articleData.author_bio,
+        date: articleData.date,
+        read_time: articleData.read_time,
+        likes: articleData.likes,
+        comments: articleData.comments,
+        tags: tagsData.map((t: any) => t.tag),
+      };
 
-Program Highlights:
-• 95% attendance rate throughout the semester
-• 40 students memorized full Surahs
-• 60 students achieved proficiency in Arabic reading
-• Weekly interactive sessions with Islamic scholars
-• Community service projects integrated into curriculum
+      setArticle(transformedArticle);
+    } catch (error) {
+      console.error('Error fetching article:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-Our dedicated teachers have worked tirelessly to create an engaging and enriching learning environment. Students ranged from ages 8 to 18, with classes tailored to different age groups and skill levels.
-
-The graduation ceremony was a joyous occasion, with students demonstrating their knowledge through Quran recitation, Arabic presentations, and Islamic quiz competitions. Parents expressed overwhelming satisfaction with their children's progress and enthusiasm for continuing their Islamic education.
-
-Registration for the next semester begins April 1st. We are expanding our program to include advanced courses in Tafsir and Islamic jurisprudence for older students.`,
-      category: 'Education',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/f59e0b/FFFFFF?text=Students+Learning' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/d97706/FFFFFF?text=Graduation+Day' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/b45309/FFFFFF?text=Certificates' },
-      ],
-      author: 'Education Team',
-      authorBio: 'Dedicated to Islamic education excellence',
-      date: 'March 8, 2025',
-      readTime: '4 min read',
-      likes: 312,
-      comments: 67,
-      tags: ['Education', 'Youth', 'Quran'],
-    },
-    '4': {
-      id: 4,
-      title: 'Tree Planting Initiative Results',
-      titleArabic: 'نتائج مبادرة زراعة الأشجار',
-      content: `Our community came together last weekend to plant over 500 trees as part of our environment beautification initiative. This remarkable achievement demonstrates our commitment to environmental stewardship and creating a greener, more beautiful community for future generations.
-
-The tree planting event saw participation from:
-• Over 200 volunteers of all ages
-• Local schools and youth groups
-• Environmental organizations
-• Community families
-
-Types of trees planted include shade trees, fruit trees, and flowering species native to our region. Each tree was carefully selected for its environmental benefits and aesthetic appeal.
-
-Volunteers worked in teams, with experienced arborists providing guidance on proper planting techniques. Children enthusiastically participated, learning about the importance of trees in Islam and environmental conservation.
-
-This initiative is part of our larger environmental beautification project, which also includes creating public gardens, maintaining green spaces, and promoting sustainable practices within our community.
-
-We plan to organize quarterly tree planting events and encourage all members to participate in these blessed activities.`,
-      category: 'Community',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Tree+Planting' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/047857/FFFFFF?text=Volunteers' },
-      ],
-      author: 'Community Team',
-      authorBio: 'Building stronger community connections',
-      date: 'March 8, 2025',
-      readTime: '2 min read',
-      likes: 276,
-      comments: 41,
-      tags: ['Environment', 'Community', 'Volunteer'],
-    },
-    '5': {
-      id: 5,
-      title: 'New Agricultural Tools Distributed',
-      titleArabic: 'توزيع الأدوات الزراعية الجديدة',
-      content: `In partnership with Tool Baye, we successfully distributed modern agricultural equipment to support our farming community. This initiative aims to enhance agricultural productivity and improve the livelihoods of local farmers.
-
-Equipment distributed includes:
-• Modern plowing tools
-• Irrigation systems
-• Quality seeds and fertilizers
-• Harvesting equipment
-• Training manuals and guides
-
-Over 50 farming families received these tools during a special distribution ceremony. Agricultural experts were present to provide training on the proper use and maintenance of the equipment.
-
-The Tool Baye Agriculture Project represents our commitment to supporting sustainable farming practices and ensuring food security for our community. This is the first phase of a comprehensive agricultural development program that will continue throughout the year.
-
-Farmers expressed gratitude for the support and are excited to implement modern techniques that will increase yields while preserving traditional farming wisdom passed down through generations.
-
-We will continue monitoring the project's impact and providing ongoing support to ensure its success.`,
-      category: 'Projects',
-      media: [
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/10b981/FFFFFF?text=Farming+Tools' },
-        { type: 'image', uri: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Distribution+Day' },
-      ],
-      author: 'Projects Team',
-      authorBio: 'Managing community development projects',
-      date: 'March 1, 2025',
-      readTime: '3 min read',
-      likes: 198,
-      comments: 28,
-      tags: ['Agriculture', 'Projects', 'Development'],
-    },
-  };
-
-  const article = newsData[id as string];
+  if (loading) {
+    return (
+      <View className="flex-1 bg-slate-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#059669" />
+        <Text className="text-slate-600 mt-4">Loading article...</Text>
+      </View>
+    );
+  }
 
   if (!article) {
     return (
@@ -294,7 +198,7 @@ We will continue monitoring the project's impact and providing ongoing support t
 
             {/* Title */}
             <Text className="text-2xl font-extrabold text-slate-800 mb-1">{article.title}</Text>
-            <Text className="text-emerald-600 text-sm font-bold mb-4">{article.titleArabic}</Text>
+            <Text className="text-emerald-600 text-sm font-bold mb-4">{article.title_arabic}</Text>
 
             {/* Author Info */}
             <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-slate-100">
@@ -304,10 +208,10 @@ We will continue monitoring the project's impact and providing ongoing support t
                 </View>
                 <View>
                   <Text className="text-slate-800 text-sm font-bold">{article.author}</Text>
-                  <Text className="text-slate-500 text-xs">{article.authorBio}</Text>
+                  <Text className="text-slate-500 text-xs">{article.author_bio}</Text>
                 </View>
               </View>
-              <Text className="text-slate-500 text-xs font-semibold">{article.readTime}</Text>
+              <Text className="text-slate-500 text-xs font-semibold">{article.read_time}</Text>
             </View>
 
             {/* Article Content */}

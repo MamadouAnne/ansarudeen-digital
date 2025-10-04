@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter, Stack } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 
 interface NewsArticle {
   id: number;
   title: string;
-  titleArabic: string;
+  title_arabic: string;
   excerpt: string;
   category: string;
   image: string;
   author: string;
   date: string;
-  readTime: string;
+  read_time: string;
   likes: number;
   comments: number;
 }
@@ -20,76 +21,52 @@ interface NewsArticle {
 export default function NewsScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = ['All', 'Announcements', 'Events', 'Community', 'Education', 'Projects'];
 
-  const newsArticles: NewsArticle[] = [
-    {
-      id: 1,
-      title: 'Grand Mosque Renovation Project Announced',
-      titleArabic: 'الإعلان عن مشروع تجديد المسجد الكبير',
-      excerpt: 'We are excited to announce the commencement of the Grand Mosque renovation project, bringing modern facilities while preserving our spiritual heritage.',
-      category: 'Announcements',
-      image: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Mosque+Exterior',
-      author: 'Admin Team',
-      date: '2 days ago',
-      readTime: '5 min read',
-      likes: 234,
-      comments: 45,
-    },
-    {
-      id: 2,
-      title: 'Community Iftar - Join Us This Ramadan',
-      titleArabic: 'إفطار جماعي - انضم إلينا هذا رمضان',
-      excerpt: 'Daily community Iftar throughout Ramadan. All members and families are welcome to break fast together in unity and brotherhood.',
-      category: 'Events',
-      image: 'https://via.placeholder.com/400x300/10b981/FFFFFF?text=Iftar+Gathering',
-      author: 'Events Committee',
-      date: '5 days ago',
-      readTime: '3 min read',
-      likes: 189,
-      comments: 32,
-    },
-    {
-      id: 3,
-      title: 'Youth Islamic Studies Program Success',
-      titleArabic: 'نجاح برنامج الدراسات الإسلامية للشباب',
-      excerpt: 'Our youth program has successfully completed its first semester with over 150 students learning Quran, Arabic, and Islamic studies.',
-      category: 'Education',
-      image: 'https://via.placeholder.com/400x300/f59e0b/FFFFFF?text=Students+Learning',
-      author: 'Education Team',
-      date: '1 week ago',
-      readTime: '4 min read',
-      likes: 312,
-      comments: 67,
-    },
-    {
-      id: 4,
-      title: 'Tree Planting Initiative Results',
-      titleArabic: 'نتائج مبادرة زراعة الأشجار',
-      excerpt: '500+ trees planted around our community in the environment beautification project. Thank you to all volunteers!',
-      category: 'Community',
-      image: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Tree+Planting',
-      author: 'Community Team',
-      date: '1 week ago',
-      readTime: '2 min read',
-      likes: 276,
-      comments: 41,
-    },
-    {
-      id: 5,
-      title: 'New Agricultural Tools Distributed',
-      titleArabic: 'توزيع الأدوات الزراعية الجديدة',
-      excerpt: 'Modern farming equipment distributed to local farmers as part of the Tool Baye Agriculture Project.',
-      category: 'Projects',
-      image: 'https://via.placeholder.com/400x300/10b981/FFFFFF?text=Farming+Tools',
-      author: 'Projects Team',
-      date: '2 weeks ago',
-      readTime: '3 min read',
-      likes: 198,
-      comments: 28,
-    },
-  ];
+  useEffect(() => {
+    fetchNewsArticles();
+  }, []);
+
+  async function fetchNewsArticles() {
+    try {
+      setLoading(true);
+      const { data: articles, error } = await supabase
+        .from('news_articles')
+        .select(`
+          *,
+          news_media!inner (
+            uri
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data to match the expected format
+      const transformedArticles = articles?.map((article: any) => ({
+        id: article.id,
+        title: article.title,
+        title_arabic: article.title_arabic,
+        excerpt: article.excerpt,
+        category: article.category,
+        image: article.news_media[0]?.uri || '',
+        author: article.author,
+        date: article.date,
+        read_time: article.read_time,
+        likes: article.likes,
+        comments: article.comments,
+      })) || [];
+
+      setNewsArticles(transformedArticles);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filteredNews = selectedCategory === 'All'
     ? newsArticles
@@ -111,6 +88,15 @@ export default function NewsScreen() {
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-slate-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#059669" />
+        <Text className="text-slate-600 mt-4">Loading news...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-slate-50">
@@ -224,7 +210,7 @@ export default function NewsScreen() {
 
                   {/* Title */}
                   <Text className="text-xl font-bold text-slate-800 mb-1">{article.title}</Text>
-                  <Text className="text-emerald-600 text-xs font-semibold mb-3">{article.titleArabic}</Text>
+                  <Text className="text-emerald-600 text-xs font-semibold mb-3">{article.title_arabic}</Text>
 
                   {/* Excerpt */}
                   <Text className="text-slate-600 text-sm leading-5 mb-4" numberOfLines={2}>
@@ -239,7 +225,7 @@ export default function NewsScreen() {
                       </View>
                       <Text className="text-slate-700 text-xs font-bold">{article.author}</Text>
                     </View>
-                    <Text className="text-slate-500 text-xs font-semibold">{article.readTime}</Text>
+                    <Text className="text-slate-500 text-xs font-semibold">{article.read_time}</Text>
                   </View>
 
                   {/* Action Buttons */}
