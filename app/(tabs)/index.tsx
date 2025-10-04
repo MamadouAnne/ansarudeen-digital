@@ -108,7 +108,7 @@ export default function HomeScreen() {
             <View style={{ width }}>
               <View className="h-full rounded-b-2xl overflow-hidden">
                 <LinearGradient
-                  colors={['#059669', '#047857', '#065f46']}
+                  colors={['#8b5cf6', '#7c3aed', '#6d28d9']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   className="flex-1"
@@ -128,7 +128,7 @@ export default function HomeScreen() {
 
                   <View className="flex-1">
                     {/* Project Card */}
-                    <View className="bg-white rounded-b-2xl shadow-lg border-2 border-emerald-100 overflow-hidden">
+                    <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
                       {/* Project Header */}
                       <View className="p-3 border-b border-slate-100">
                         <View className="flex-row items-center justify-between mb-2">
@@ -203,7 +203,7 @@ export default function HomeScreen() {
             <View style={{ width }}>
               <View className="h-full rounded-b-2xl overflow-hidden">
                 <LinearGradient
-                  colors={['#059669', '#047857', '#065f46']}
+                  colors={['#ec4899', '#db2777', '#be185d']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   className="flex-1"
@@ -211,7 +211,7 @@ export default function HomeScreen() {
 
                 <View className="relative z-10 h-full">
                   {/* News Card */}
-                  <View className="bg-white rounded-b-2xl overflow-hidden border-2 border-emerald-100 shadow-md h-full">
+                  <View className="bg-sky-50 rounded-b-2xl overflow-hidden border-2 border-sky-200 shadow-md h-full">
                     <View className="p-3">
                       {/* Category Badge */}
                       <View className="flex-row items-center justify-between mb-2">
