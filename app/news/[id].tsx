@@ -42,28 +42,30 @@ export default function NewsDetailsScreen() {
   async function fetchArticle() {
     try {
       setLoading(true);
-      const { data: articleData, error: articleError } = await supabase
+
+      // Fetch all data in one query using joins
+      const { data: articleData, error } = await supabase
         .from('news_articles')
-        .select('*')
+        .select(`
+          *,
+          news_media (
+            type,
+            uri,
+            display_order
+          ),
+          news_tags (
+            tag
+          )
+        `)
         .eq('id', id)
         .single();
 
-      if (articleError) throw articleError;
+      if (error) throw error;
 
-      const { data: mediaData, error: mediaError } = await supabase
-        .from('news_media')
-        .select('*')
-        .eq('news_article_id', id)
-        .order('display_order', { ascending: true });
-
-      if (mediaError) throw mediaError;
-
-      const { data: tagsData, error: tagsError } = await supabase
-        .from('news_tags')
-        .select('*')
-        .eq('news_article_id', id);
-
-      if (tagsError) throw tagsError;
+      // Sort media by display_order
+      const sortedMedia = (articleData.news_media || []).sort(
+        (a: any, b: any) => a.display_order - b.display_order
+      );
 
       const transformedArticle: NewsArticle = {
         id: articleData.id,
@@ -71,7 +73,7 @@ export default function NewsDetailsScreen() {
         title_arabic: articleData.title_arabic,
         content: articleData.content,
         category: articleData.category,
-        media: mediaData.map((m: any) => ({
+        media: sortedMedia.map((m: any) => ({
           type: m.type,
           uri: m.uri,
         })),
@@ -81,7 +83,7 @@ export default function NewsDetailsScreen() {
         read_time: articleData.read_time,
         likes: articleData.likes,
         comments: articleData.comments,
-        tags: tagsData.map((t: any) => t.tag),
+        tags: (articleData.news_tags || []).map((t: any) => t.tag),
       };
 
       setArticle(transformedArticle);
