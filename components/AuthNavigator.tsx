@@ -76,8 +76,10 @@ export function AuthNavigator() {
       <Stack.Screen name="auth/signin" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="donation-tracker" options={{ headerShown: false }} />
-      <Stack.Screen name="projects" options={{ headerShown: false }} />
-      <Stack.Screen name="news" options={{ headerShown: false }} />
+      <Stack.Screen name="projects/index" options={{ headerShown: false }} />
+      <Stack.Screen name="projects/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="news/index" options={{ headerShown: false }} />
+      <Stack.Screen name="news/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>
   );
