@@ -269,6 +269,39 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {/* Admin Panel - Only visible to admins */}
+          {profile.role === 'admin' && (
+            <View className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl shadow-lg border-2 border-purple-200 p-6 mb-5">
+              <View className="flex-row items-center mb-5">
+                <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
+                  <Text className="text-purple-600 text-xl">⚙️</Text>
+                </View>
+                <Text className="text-2xl font-bold text-purple-900">Admin Panel</Text>
+              </View>
+              <View className="space-y-3">
+                <Link href="/admin/projects" asChild>
+                  <TouchableOpacity className="flex-row items-center p-4 bg-white rounded-2xl border-2 border-purple-300">
+                    <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
+                      <Text className="text-purple-600">🏗️</Text>
+                    </View>
+                    <Text className="text-slate-800 font-bold flex-1">Manage Projects</Text>
+                    <Text className="text-purple-600 text-xl font-bold">→</Text>
+                  </TouchableOpacity>
+                </Link>
+
+                <Link href="/admin/news" asChild>
+                  <TouchableOpacity className="flex-row items-center p-4 bg-white rounded-2xl border-2 border-purple-300">
+                    <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
+                      <Text className="text-purple-600">📰</Text>
+                    </View>
+                    <Text className="text-slate-800 font-bold flex-1">Manage News</Text>
+                    <Text className="text-purple-600 text-xl font-bold">→</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+            </View>
+          )}
+
           {/* Quick Actions with Islamic Design */}
           <View className="bg-white rounded-3xl shadow-lg border-2 border-emerald-100 p-6 mb-5">
             <View className="flex-row items-center mb-5">

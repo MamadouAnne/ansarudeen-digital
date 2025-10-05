@@ -29,6 +29,7 @@ export interface UserProfile {
   total_donations: number;
   membership_status: 'Active' | 'Inactive' | 'Pending';
   membership_type: 'Full Member' | 'Associate Member' | 'Honorary Member';
+  role?: 'user' | 'admin';
   created_at: string;
   updated_at: string;
 }
@@ -216,6 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       total_donations: 0,
       membership_status: 'Active' as const,
       membership_type: 'Full Member' as const,
+      role: 'user' as const,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

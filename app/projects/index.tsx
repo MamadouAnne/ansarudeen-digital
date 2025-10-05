@@ -154,29 +154,34 @@ export default function ProjectsScreen() {
                 <TouchableOpacity
                   key={project.id}
                   onPress={() => router.push(`/projects/${project.id}`)}
-                  className="bg-white rounded-3xl shadow-md border border-emerald-200/60 overflow-hidden mb-4"
+                  className="rounded-3xl shadow-lg mb-4 border-2 border-emerald-400 overflow-hidden"
                 >
-                  {/* Project Image */}
-                  {project.media && project.media.length > 0 && (
-                    <View className="relative">
-                      <Image
-                        source={{ uri: project.media[0].uri }}
-                        className="w-full h-48"
-                        resizeMode="cover"
-                      />
-                      {/* Status Badge Overlay */}
-                      <View className="absolute top-3 right-3">
-                        <View className={`px-3 py-1.5 rounded-full border-2 ${statusColors.bg} ${statusColors.border} shadow-sm`}>
-                          <Text className={`text-xs font-extrabold ${statusColors.text}`}>
-                            {getStatusText(project.status)}
-                          </Text>
+                  <LinearGradient
+                    colors={['#ffffff', '#f0fdf4', '#dcfce7']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    {/* Project Image */}
+                    {project.media && project.media.length > 0 && (
+                      <View className="relative">
+                        <Image
+                          source={{ uri: project.media[0].uri }}
+                          className="w-full h-48"
+                          resizeMode="cover"
+                        />
+                        {/* Status Badge Overlay */}
+                        <View className="absolute top-3 right-3">
+                          <View className={`px-3 py-1.5 rounded-full border-2 ${statusColors.bg} ${statusColors.border} shadow-sm`}>
+                            <Text className={`text-xs font-extrabold ${statusColors.text}`}>
+                              {getStatusText(project.status)}
+                            </Text>
+                          </View>
                         </View>
                       </View>
-                    </View>
-                  )}
+                    )}
 
-                  {/* Project Header */}
-                  <View className="p-4">
+                    {/* Project Header */}
+                    <View className="p-4">
                     <View className="flex-row items-center mb-3">
                       <View className="w-14 h-14 bg-emerald-100 rounded-2xl items-center justify-center mr-3 shadow-sm">
                         <Text className="text-3xl">{project.icon}</Text>
@@ -231,6 +236,7 @@ export default function ProjectsScreen() {
                       </View>
                     </View>
                   </View>
+                  </LinearGradient>
                 </TouchableOpacity>
               );
             })}
