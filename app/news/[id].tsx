@@ -18,6 +18,7 @@ interface NewsArticle {
   id: number;
   title: string;
   title_arabic: string;
+  excerpt: string;
   content: string;
   category: string;
   media: NewsMedia[];
@@ -58,6 +59,7 @@ export default function NewsDetailsScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+  const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
   const translateY = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
@@ -105,6 +107,12 @@ export default function NewsDetailsScreen() {
     }, [id])
   );
 
+  useEffect(() => {
+    if (article) {
+      fetchRelatedArticles();
+    }
+  }, [article?.category, id]);
+
   const checkIfLiked = async () => {
     try {
       const likedArticles = await AsyncStorage.getItem('likedArticles');
@@ -114,6 +122,51 @@ export default function NewsDetailsScreen() {
       }
     } catch (error) {
       console.error('Error checking if liked:', error);
+    }
+  };
+
+  const fetchRelatedArticles = async () => {
+    if (!article) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('news_articles')
+        .select(`
+          *,
+          news_media!inner (
+            uri
+          )
+        `)
+        .eq('category', article.category)
+        .neq('id', id)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+
+      const transformed = data?.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        title_arabic: item.title_arabic,
+        excerpt: item.excerpt,
+        content: item.content || '',
+        category: item.category,
+        media: item.news_media.map((m: any) => ({
+          type: m.type,
+          uri: m.uri,
+        })),
+        author: item.author,
+        author_bio: item.author_bio,
+        date: item.date,
+        read_time: item.read_time,
+        likes: item.likes,
+        comments: item.comments,
+        tags: [],
+      })) || [];
+
+      setRelatedArticles(transformed);
+    } catch (error) {
+      console.error('Error fetching related articles:', error);
     }
   };
 
@@ -149,6 +202,7 @@ export default function NewsDetailsScreen() {
         id: articleData.id,
         title: articleData.title,
         title_arabic: articleData.title_arabic,
+        excerpt: articleData.excerpt || '',
         content: articleData.content,
         category: articleData.category,
         media: sortedMedia.map((m: any) => ({
@@ -645,10 +699,43 @@ export default function NewsDetailsScreen() {
           )}
 
           {/* Related Articles */}
-          <View className="bg-white rounded-3xl shadow-lg border border-emerald-200/60 p-5 mb-5">
-            <Text className="text-xl font-bold text-slate-800 mb-3">Related Articles</Text>
-            <Text className="text-slate-600 text-sm">More articles coming soon...</Text>
-          </View>
+          {relatedArticles.length > 0 && (
+            <View className="bg-white rounded-3xl shadow-lg border border-emerald-200/60 p-5 mb-5">
+              <Text className="text-xl font-bold text-slate-800 mb-4">Related Articles</Text>
+              {relatedArticles.map((related) => (
+                <TouchableOpacity
+                  key={related.id}
+                  onPress={() => router.push(`/news/${related.id}`)}
+                  className="mb-4 pb-4 border-b border-slate-100 last:border-b-0 last:mb-0 last:pb-0"
+                >
+                  <View className="flex-row">
+                    {related.media && related.media.length > 0 && (
+                      <Image
+                        source={{ uri: related.media[0].uri }}
+                        className="w-24 h-24 rounded-xl mr-3"
+                        resizeMode="cover"
+                      />
+                    )}
+                    <View className="flex-1">
+                      <View className="bg-emerald-50 self-start px-2 py-1 rounded-full mb-1">
+                        <Text className="text-emerald-600 text-xs font-bold">{related.category}</Text>
+                      </View>
+                      <Text className="text-slate-800 font-bold text-sm mb-1" numberOfLines={2}>
+                        {related.title}
+                      </Text>
+                      <Text className="text-slate-500 text-xs" numberOfLines={2}>
+                        {related.excerpt}
+                      </Text>
+                      <View className="flex-row items-center mt-2">
+                        <Text className="text-slate-400 text-xs mr-3">📅 {related.date}</Text>
+                        <Text className="text-slate-400 text-xs">⏱️ {related.read_time}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         <View className="h-8"></View>

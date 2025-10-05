@@ -29,6 +29,7 @@ export default function NewsScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   const categories = ['All', 'Announcements', 'Events', 'Community', 'Education', 'Projects'];
 
@@ -46,7 +47,11 @@ export default function NewsScreen() {
   async function fetchNewsArticles(reset: boolean = false) {
     try {
       if (reset) {
-        setLoading(true);
+        if (isFirstLoad) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
         setPage(0);
         setNewsArticles([]);
       } else {
@@ -103,6 +108,10 @@ export default function NewsScreen() {
 
       setPage(currentPage + 1);
       setHasMore(count ? (currentPage + 1) * ITEMS_PER_PAGE < count : false);
+
+      if (isFirstLoad) {
+        setIsFirstLoad(false);
+      }
     } catch (error) {
       console.error('Error fetching news:', error);
     } finally {
