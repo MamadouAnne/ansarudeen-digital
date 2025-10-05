@@ -34,6 +34,7 @@ export default function NewsDetailsScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isUpdatingLike, setIsUpdatingLike] = useState(false);
 
   useEffect(() => {
     fetchArticle();
@@ -91,6 +92,37 @@ export default function NewsDetailsScreen() {
       console.error('Error fetching article:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleLike() {
+    if (isUpdatingLike || !article) return;
+
+    try {
+      setIsUpdatingLike(true);
+      const newLikedState = !isLiked;
+      const newLikesCount = newLikedState ? article.likes + 1 : article.likes - 1;
+
+      // Optimistically update UI
+      setIsLiked(newLikedState);
+      setArticle({ ...article, likes: newLikesCount });
+
+      // Update in database
+      const { error } = await supabase
+        .from('news_articles')
+        .update({ likes: newLikesCount })
+        .eq('id', id);
+
+      if (error) {
+        // Revert on error
+        setIsLiked(!newLikedState);
+        setArticle({ ...article, likes: article.likes });
+        console.error('Error updating like:', error);
+      }
+    } catch (error) {
+      console.error('Error updating like:', error);
+    } finally {
+      setIsUpdatingLike(false);
     }
   }
 
@@ -251,12 +283,13 @@ export default function NewsDetailsScreen() {
             <View className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-4 border border-emerald-300/50">
               <View className="flex-row items-center justify-around">
                 <TouchableOpacity
-                  onPress={() => setIsLiked(!isLiked)}
+                  onPress={handleLike}
+                  disabled={isUpdatingLike}
                   className="flex-row items-center"
                 >
                   <Text className={`text-2xl mr-2 ${isLiked ? '' : 'opacity-40'}`}>❤️</Text>
                   <Text className="text-slate-700 font-extrabold text-lg">
-                    {article.likes + (isLiked ? 1 : 0)}
+                    {article.likes}
                   </Text>
                 </TouchableOpacity>
                 <View className="flex-row items-center">
