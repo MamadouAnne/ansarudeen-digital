@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Platform, A
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface NewsArticle {
   id: number;
@@ -35,6 +36,13 @@ export default function NewsScreen() {
     fetchNewsArticles(true);
   }, [selectedCategory]);
 
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchNewsArticles(true);
+    }, [selectedCategory])
+  );
+
   async function fetchNewsArticles(reset: boolean = false) {
     try {
       if (reset) {
@@ -55,6 +63,9 @@ export default function NewsScreen() {
           *,
           news_media!inner (
             uri
+          ),
+          news_comments (
+            id
           )
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
@@ -81,7 +92,7 @@ export default function NewsScreen() {
         date: article.date,
         read_time: article.read_time,
         likes: article.likes,
-        comments: article.comments,
+        comments: article.news_comments?.length || 0,
       })) || [];
 
       if (reset) {

@@ -4,6 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { getProjectById, Project } from '@/services/projects';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -14,22 +16,43 @@ interface Comment {
   created_at: string;
 }
 
+const COMMENTS_PER_PAGE = 2;
+
 export default function ProjectDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [commentsPage, setCommentsPage] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
+  const [hasMoreComments, setHasMoreComments] = useState(false);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [userName, setUserName] = useState('');
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isUpdatingLike, setIsUpdatingLike] = useState(false);
 
   useEffect(() => {
     loadProject();
-    loadComments();
+    loadComments(true);
+    checkIfLiked();
   }, [id]);
+
+  const checkIfLiked = async () => {
+    try {
+      const likedProjects = await AsyncStorage.getItem('likedProjects');
+      if (likedProjects) {
+        const likedArray = JSON.parse(likedProjects);
+        setIsLiked(likedArray.includes(Number(id)));
+      }
+    } catch (error) {
+      console.error('Error checking if liked:', error);
+    }
+  };
 
   const loadProject = async () => {
     try {
@@ -47,26 +70,76 @@ export default function ProjectDetailsScreen() {
     }
   };
 
-  const loadComments = async () => {
+  const loadComments = async (reset: boolean = false) => {
     try {
-      const { data, error } = await supabase
+      setIsLoadingComments(true);
+      const currentPage = reset ? 0 : commentsPage;
+      const from = currentPage * COMMENTS_PER_PAGE;
+      const to = from + COMMENTS_PER_PAGE - 1;
+
+      const { data, error, count } = await supabase
         .from('project_comments')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('project_id', id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
-      setComments(data || []);
+
+      setTotalComments(count || 0);
+
+      if (reset) {
+        setComments(data || []);
+        setCommentsPage(0);
+      } else {
+        setComments(prevComments => [...prevComments, ...(data || [])]);
+      }
+
+      setHasMoreComments((count || 0) > (reset ? COMMENTS_PER_PAGE : (currentPage + 1) * COMMENTS_PER_PAGE));
     } catch (error) {
       console.error('Error loading comments:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  const loadMoreComments = async () => {
+    const nextPage = commentsPage + 1;
+    setCommentsPage(nextPage);
+
+    try {
+      setIsLoadingComments(true);
+      const from = nextPage * COMMENTS_PER_PAGE;
+      const to = from + COMMENTS_PER_PAGE - 1;
+
+      const { data, error, count } = await supabase
+        .from('project_comments')
+        .select('*', { count: 'exact' })
+        .eq('project_id', id)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      setTotalComments(count || 0);
+      setComments(prevComments => [...prevComments, ...(data || [])]);
+      setHasMoreComments((count || 0) > (nextPage + 1) * COMMENTS_PER_PAGE);
+    } catch (error) {
+      console.error('Error loading more comments:', error);
+    } finally {
+      setIsLoadingComments(false);
     }
   };
 
   const handleSubmitComment = async () => {
-    if (!userName.trim() || !commentText.trim()) {
-      Alert.alert('Error', 'Please enter your name and comment');
+    if (!commentText.trim()) {
+      Alert.alert('Error', 'Please enter a comment');
       return;
     }
+
+    const userName = user?.profile?.first_name && user?.profile?.last_name
+      ? `${user.profile.first_name} ${user.profile.last_name}`
+      : user?.supabaseUser?.email?.split('@')[0] || 'Anonymous';
 
     try {
       setIsSubmitting(true);
@@ -74,17 +147,16 @@ export default function ProjectDetailsScreen() {
         .from('project_comments')
         .insert({
           project_id: id,
-          user_name: userName.trim(),
+          user_name: userName,
           comment_text: commentText.trim(),
         });
 
       if (error) throw error;
 
       // Clear form and reload comments
-      setUserName('');
       setCommentText('');
       setShowCommentModal(false);
-      loadComments();
+      loadComments(true);
       Alert.alert('Success', 'Comment added successfully!');
     } catch (error) {
       console.error('Error submitting comment:', error);
@@ -93,6 +165,57 @@ export default function ProjectDetailsScreen() {
       setIsSubmitting(false);
     }
   };
+
+  async function handleLike() {
+    if (isUpdatingLike || !project) return;
+
+    try {
+      setIsUpdatingLike(true);
+      const newLikedState = !isLiked;
+      const newLikesCount = newLikedState ? (project.likes || 0) + 1 : (project.likes || 0) - 1;
+
+      // Optimistically update UI
+      setIsLiked(newLikedState);
+      setProject({ ...project, likes: newLikesCount });
+
+      // Update in database
+      const { error } = await supabase
+        .from('projects')
+        .update({ likes: newLikesCount })
+        .eq('id', id);
+
+      if (error) {
+        // Revert on error
+        setIsLiked(!newLikedState);
+        setProject({ ...project, likes: project.likes || 0 });
+        console.error('Error updating like:', error);
+        return;
+      }
+
+      // Update AsyncStorage to track liked state
+      const likedProjects = await AsyncStorage.getItem('likedProjects');
+      let likedArray = likedProjects ? JSON.parse(likedProjects) : [];
+
+      if (newLikedState) {
+        // Add to liked
+        if (!likedArray.includes(Number(id))) {
+          likedArray.push(Number(id));
+        }
+      } else {
+        // Remove from liked
+        likedArray = likedArray.filter((projectId: number) => projectId !== Number(id));
+      }
+
+      await AsyncStorage.setItem('likedProjects', JSON.stringify(likedArray));
+    } catch (error) {
+      console.error('Error updating like:', error);
+      // Revert on error
+      setIsLiked(!isLiked);
+      setProject({ ...project, likes: project.likes || 0 });
+    } finally {
+      setIsUpdatingLike(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -323,21 +446,32 @@ export default function ProjectDetailsScreen() {
             </View>
           </View>
 
-          {/* Comments Section */}
+          {/* Engagement Stats */}
           <View className="bg-white rounded-3xl shadow-lg border border-emerald-200/60 p-6 mb-6">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-2xl font-extrabold text-slate-800">Comments ({comments.length})</Text>
+            <View className="flex-row items-center justify-around">
+              <TouchableOpacity
+                onPress={handleLike}
+                disabled={isUpdatingLike}
+                className="flex-row items-center"
+              >
+                <Text className="text-2xl mr-2">{isLiked ? '❤️' : '🤍'}</Text>
+                <Text className="text-slate-700 font-bold">{project.likes || 0} Likes</Text>
+              </TouchableOpacity>
+              <View className="w-px h-6 bg-slate-200" />
               <TouchableOpacity
                 onPress={() => setShowCommentModal(true)}
-                className="bg-emerald-600 px-5 py-2 rounded-full"
+                className="flex-row items-center"
               >
-                <Text className="text-white font-bold">Add Comment</Text>
+                <Text className="text-2xl mr-2">💬</Text>
+                <Text className="text-slate-700 font-bold">{totalComments} Comments</Text>
               </TouchableOpacity>
             </View>
+          </View>
 
-            {comments.length === 0 ? (
-              <Text className="text-slate-500 text-center py-4">No comments yet. Be the first to comment!</Text>
-            ) : (
+          {/* Comments Section */}
+          {comments.length > 0 && (
+            <View className="bg-white rounded-3xl shadow-lg border border-emerald-200/60 p-6 mb-6">
+              <Text className="text-2xl font-extrabold text-slate-800 mb-4">Comments ({totalComments})</Text>
               <View>
                 {comments.map((comment) => (
                   <View key={comment.id} className="mb-4 pb-4 border-b border-slate-100">
@@ -356,8 +490,22 @@ export default function ProjectDetailsScreen() {
                   </View>
                 ))}
               </View>
-            )}
-          </View>
+
+              {hasMoreComments && (
+                <TouchableOpacity
+                  onPress={loadMoreComments}
+                  disabled={isLoadingComments}
+                  className="mt-4 py-3 bg-emerald-50 rounded-2xl border border-emerald-200"
+                >
+                  {isLoadingComments ? (
+                    <ActivityIndicator size="small" color="#059669" />
+                  ) : (
+                    <Text className="text-emerald-600 font-bold text-center">Load More Comments</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
 
           {/* Donate Button */}
           <Link href="/(tabs)/donate" asChild>
@@ -406,17 +554,6 @@ export default function ProjectDetailsScreen() {
               </TouchableOpacity>
             </View>
 
-            <View className="mb-4">
-              <Text className="text-slate-700 font-bold mb-2">Your Name</Text>
-              <TextInput
-                className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-800"
-                placeholder="Enter your name"
-                value={userName}
-                onChangeText={setUserName}
-                editable={!isSubmitting}
-              />
-            </View>
-
             <View className="mb-6">
               <Text className="text-slate-700 font-bold mb-2">Comment</Text>
               <TextInput
@@ -425,9 +562,10 @@ export default function ProjectDetailsScreen() {
                 value={commentText}
                 onChangeText={setCommentText}
                 multiline
-                numberOfLines={4}
+                numberOfLines={8}
                 textAlignVertical="top"
                 editable={!isSubmitting}
+                style={{ minHeight: 150 }}
               />
             </View>
 

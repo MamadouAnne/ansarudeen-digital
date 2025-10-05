@@ -21,6 +21,7 @@ export interface Project {
   raisedAmount: number;
   startDate: string;
   donors: number;
+  likes: number;
 }
 
 interface ProjectRow {
@@ -38,6 +39,7 @@ interface ProjectRow {
   raised_amount: number;
   start_date: string;
   donors: number;
+  likes: number;
 }
 
 interface ProjectMediaRow {
@@ -101,6 +103,7 @@ export async function getAllProjects(): Promise<Project[]> {
         raisedAmount: project.raised_amount,
         startDate: project.start_date,
         donors: project.donors,
+        likes: project.likes,
         media: projectMedia,
       };
     });
@@ -162,6 +165,7 @@ export async function getProjectById(projectId: number): Promise<Project | null>
       raisedAmount: projectData.raised_amount,
       startDate: projectData.start_date,
       donors: projectData.donors,
+      likes: projectData.likes,
       media: mediaData?.map((media: ProjectMediaRow) => ({
         type: media.type,
         uri: media.uri,
@@ -233,6 +237,7 @@ export async function getProjectsByStatus(status: 'ongoing' | 'planning' | 'comp
         raisedAmount: project.raised_amount,
         startDate: project.start_date,
         donors: project.donors,
+        likes: project.likes,
         media: projectMedia,
       };
     });
@@ -300,6 +305,7 @@ export async function getProjectsByCategory(category: string): Promise<Project[]
         raisedAmount: project.raised_amount,
         startDate: project.start_date,
         donors: project.donors,
+        likes: project.likes,
         media: projectMedia,
       };
     });

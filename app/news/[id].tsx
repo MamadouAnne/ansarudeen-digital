@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -27,18 +30,59 @@ interface NewsArticle {
   tags: string[];
 }
 
+interface Comment {
+  id: number;
+  user_name: string;
+  comment_text: string;
+  created_at: string;
+}
+
+const COMMENTS_PER_PAGE = 2;
+
 export default function NewsDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUpdatingLike, setIsUpdatingLike] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentsPage, setCommentsPage] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
+  const [hasMoreComments, setHasMoreComments] = useState(false);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchArticle();
+    loadComments(true);
+    checkIfLiked();
   }, [id]);
+
+  // Refresh article when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchArticle();
+      loadComments(true);
+      checkIfLiked();
+    }, [id])
+  );
+
+  const checkIfLiked = async () => {
+    try {
+      const likedArticles = await AsyncStorage.getItem('likedArticles');
+      if (likedArticles) {
+        const likedArray = JSON.parse(likedArticles);
+        setIsLiked(likedArray.includes(Number(id)));
+      }
+    } catch (error) {
+      console.error('Error checking if liked:', error);
+    }
+  };
 
   async function fetchArticle() {
     try {
@@ -95,6 +139,118 @@ export default function NewsDetailsScreen() {
     }
   }
 
+  const loadComments = async (reset: boolean = false) => {
+    try {
+      setIsLoadingComments(true);
+      const currentPage = reset ? 0 : commentsPage;
+      const from = currentPage * COMMENTS_PER_PAGE;
+      const to = from + COMMENTS_PER_PAGE - 1;
+
+      const { data, error, count } = await supabase
+        .from('news_comments')
+        .select('*', { count: 'exact' })
+        .eq('news_article_id', id)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      setTotalComments(count || 0);
+
+      if (reset) {
+        setComments(data || []);
+        setCommentsPage(0);
+      } else {
+        setComments(prevComments => [...prevComments, ...(data || [])]);
+      }
+
+      setHasMoreComments((count || 0) > (reset ? COMMENTS_PER_PAGE : (currentPage + 1) * COMMENTS_PER_PAGE));
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  const loadMoreComments = async () => {
+    const nextPage = commentsPage + 1;
+    setCommentsPage(nextPage);
+
+    try {
+      setIsLoadingComments(true);
+      const from = nextPage * COMMENTS_PER_PAGE;
+      const to = from + COMMENTS_PER_PAGE - 1;
+
+      const { data, error, count } = await supabase
+        .from('news_comments')
+        .select('*', { count: 'exact' })
+        .eq('news_article_id', id)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      setTotalComments(count || 0);
+      setComments(prevComments => [...prevComments, ...(data || [])]);
+      setHasMoreComments((count || 0) > (nextPage + 1) * COMMENTS_PER_PAGE);
+    } catch (error) {
+      console.error('Error loading more comments:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!commentText.trim()) {
+      Alert.alert('Error', 'Please enter a comment');
+      return;
+    }
+
+    const userName = user?.profile?.first_name && user?.profile?.last_name
+      ? `${user.profile.first_name} ${user.profile.last_name}`
+      : user?.supabaseUser?.email?.split('@')[0] || 'Anonymous';
+
+    try {
+      setIsSubmitting(true);
+
+      // Insert comment
+      const { error: commentError } = await supabase
+        .from('news_comments')
+        .insert({
+          news_article_id: id,
+          user_name: userName,
+          comment_text: commentText.trim(),
+        });
+
+      if (commentError) throw commentError;
+
+      // Update comment count in news_articles
+      const newCommentCount = (article?.comments || 0) + 1;
+      const { error: updateError } = await supabase
+        .from('news_articles')
+        .update({ comments: newCommentCount })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      if (article) {
+        setArticle({ ...article, comments: newCommentCount });
+      }
+
+      // Clear form and reload comments
+      setCommentText('');
+      setShowCommentModal(false);
+      loadComments(true);
+      Alert.alert('Success', 'Comment added successfully!');
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      Alert.alert('Error', 'Failed to add comment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   async function handleLike() {
     if (isUpdatingLike || !article) return;
 
@@ -118,9 +274,29 @@ export default function NewsDetailsScreen() {
         setIsLiked(!newLikedState);
         setArticle({ ...article, likes: article.likes });
         console.error('Error updating like:', error);
+        return;
       }
+
+      // Update AsyncStorage to track liked state
+      const likedArticles = await AsyncStorage.getItem('likedArticles');
+      let likedArray = likedArticles ? JSON.parse(likedArticles) : [];
+
+      if (newLikedState) {
+        // Add to liked
+        if (!likedArray.includes(Number(id))) {
+          likedArray.push(Number(id));
+        }
+      } else {
+        // Remove from liked
+        likedArray = likedArray.filter((articleId: number) => articleId !== Number(id));
+      }
+
+      await AsyncStorage.setItem('likedArticles', JSON.stringify(likedArray));
     } catch (error) {
       console.error('Error updating like:', error);
+      // Revert on error
+      setIsLiked(!isLiked);
+      setArticle({ ...article, likes: article.likes });
     } finally {
       setIsUpdatingLike(false);
     }
@@ -292,10 +468,13 @@ export default function NewsDetailsScreen() {
                     {article.likes}
                   </Text>
                 </TouchableOpacity>
-                <View className="flex-row items-center">
+                <TouchableOpacity
+                  onPress={() => setShowCommentModal(true)}
+                  className="flex-row items-center"
+                >
                   <Text className="text-2xl mr-2">💬</Text>
-                  <Text className="text-slate-700 font-extrabold text-lg">{article.comments}</Text>
-                </View>
+                  <Text className="text-slate-700 font-extrabold text-lg">{totalComments}</Text>
+                </TouchableOpacity>
                 <TouchableOpacity className="flex-row items-center">
                   <Text className="text-2xl mr-2">📤</Text>
                   <Text className="text-slate-700 font-extrabold text-sm">Share</Text>
@@ -303,6 +482,45 @@ export default function NewsDetailsScreen() {
               </View>
             </View>
           </View>
+
+          {/* Comments Section */}
+          {comments.length > 0 && (
+            <View className="bg-white rounded-3xl shadow-lg border border-emerald-200/60 p-6 mb-6">
+              <Text className="text-2xl font-extrabold text-slate-800 mb-4">Comments ({totalComments})</Text>
+              <View>
+                {comments.map((comment) => (
+                  <View key={comment.id} className="mb-4 pb-4 border-b border-slate-100">
+                    <View className="flex-row items-center mb-2">
+                      <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                        <Text className="text-emerald-600 font-bold text-lg">{comment.user_name[0].toUpperCase()}</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-slate-800 font-bold">{comment.user_name}</Text>
+                        <Text className="text-slate-500 text-xs">
+                          {new Date(comment.created_at).toLocaleDateString()} at {new Date(comment.created_at).toLocaleTimeString()}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="text-slate-700 ml-13">{comment.comment_text}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {hasMoreComments && (
+                <TouchableOpacity
+                  onPress={loadMoreComments}
+                  disabled={isLoadingComments}
+                  className="mt-4 py-3 bg-emerald-50 rounded-2xl border border-emerald-200"
+                >
+                  {isLoadingComments ? (
+                    <ActivityIndicator size="small" color="#059669" />
+                  ) : (
+                    <Text className="text-emerald-600 font-bold text-center">Load More Comments</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
 
           {/* Related Articles */}
           <View className="bg-white rounded-3xl shadow-lg border border-emerald-200/60 p-5 mb-5">
@@ -313,6 +531,55 @@ export default function NewsDetailsScreen() {
 
         <View className="h-8"></View>
       </ScrollView>
+
+      {/* Comment Modal */}
+      <Modal
+        visible={showCommentModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCommentModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 justify-end bg-black/50"
+        >
+          <View className="bg-white rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-2xl font-extrabold text-slate-800">Add Comment</Text>
+              <TouchableOpacity onPress={() => setShowCommentModal(false)}>
+                <Text className="text-slate-500 text-3xl">×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-slate-700 font-bold mb-2">Comment</Text>
+              <TextInput
+                className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-800"
+                placeholder="Share your thoughts..."
+                value={commentText}
+                onChangeText={setCommentText}
+                multiline
+                numberOfLines={8}
+                textAlignVertical="top"
+                editable={!isSubmitting}
+                style={{ minHeight: 150 }}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={handleSubmitComment}
+              disabled={isSubmitting}
+              className={`bg-emerald-600 py-4 rounded-2xl ${isSubmitting ? 'opacity-50' : ''}`}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text className="text-white font-bold text-center text-lg">Submit Comment</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
