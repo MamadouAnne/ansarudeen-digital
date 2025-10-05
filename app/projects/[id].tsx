@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Alert, PanResponder, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { getProjectById, Project } from '@/services/projects';
@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface Comment {
   id: number;
@@ -35,6 +35,39 @@ export default function ProjectDetailsScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isUpdatingLike, setIsUpdatingLike] = useState(false);
+  const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 10;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100) {
+          Animated.timing(translateY, {
+            toValue: height,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            setShowFullscreenImage(false);
+            translateY.setValue(0);
+          });
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     loadProject();
@@ -332,13 +365,21 @@ export default function ProjectDetailsScreen() {
               }}
             >
               {project.media.map((media, index) => (
-                <View key={index} style={{ width }}>
+                <TouchableOpacity
+                  key={index}
+                  style={{ width }}
+                  onPress={() => {
+                    setFullscreenImageIndex(index);
+                    setShowFullscreenImage(true);
+                  }}
+                  activeOpacity={0.9}
+                >
                   <Image
                     source={{ uri: media.uri }}
                     style={{ width, height: 256 }}
                     resizeMode="cover"
                   />
-                </View>
+                </TouchableOpacity>
               ))}
             </ScrollView>
 
@@ -359,6 +400,87 @@ export default function ProjectDetailsScreen() {
             <Text className="text-slate-500">No images available</Text>
           </View>
         )}
+
+        {/* Fullscreen Image Modal */}
+        <Modal
+          visible={showFullscreenImage}
+          transparent={false}
+          animationType="fade"
+          onRequestClose={() => setShowFullscreenImage(false)}
+          statusBarTranslucent={true}
+        >
+          <View style={{ flex: 1, backgroundColor: '#000' }}>
+            <StatusBar
+              barStyle="light-content"
+              backgroundColor="#000000"
+              translucent={true}
+              hidden={false}
+            />
+            <Animated.View
+              style={{
+                flex: 1,
+                transform: [{ translateY }],
+              }}
+              {...panResponder.panHandlers}
+            >
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(e) => {
+                  const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                  setFullscreenImageIndex(index);
+                }}
+                contentOffset={{ x: fullscreenImageIndex * width, y: 0 }}
+              >
+                {project.media.map((media, index) => (
+                  <View key={index} style={{ width, height }}>
+                    <Image
+                      source={{ uri: media.uri }}
+                      style={{ width, height }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Close Button */}
+              <TouchableOpacity
+                onPress={() => setShowFullscreenImage(false)}
+                style={{
+                  position: 'absolute',
+                  top: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 8 : 50,
+                  right: 16,
+                  width: 40,
+                  height: 40,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  borderRadius: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>×</Text>
+              </TouchableOpacity>
+
+              {/* Image Counter */}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 32,
+                  left: 0,
+                  right: 0,
+                  alignItems: 'center',
+                }}
+              >
+                <View style={{ backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}>
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                    {fullscreenImageIndex + 1} / {project.media.length}
+                  </Text>
+                </View>
+              </View>
+            </Animated.View>
+          </View>
+        </Modal>
 
         <View className="px-5 py-5">
           {/* Project Header */}

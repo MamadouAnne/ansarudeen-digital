@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Alert, PanResponder, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface NewsMedia {
   type: 'image' | 'video';
@@ -56,6 +56,39 @@ export default function NewsDetailsScreen() {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 10;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100) {
+          Animated.timing(translateY, {
+            toValue: height,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            setShowFullscreenImage(false);
+            translateY.setValue(0);
+          });
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     fetchArticle();
@@ -387,13 +420,21 @@ export default function NewsDetailsScreen() {
             }}
           >
             {article.media.map((media, index) => (
-              <View key={index} style={{ width }}>
+              <TouchableOpacity
+                key={index}
+                style={{ width }}
+                onPress={() => {
+                  setFullscreenImageIndex(index);
+                  setShowFullscreenImage(true);
+                }}
+                activeOpacity={0.9}
+              >
                 <Image
                   source={{ uri: media.uri }}
                   className="h-64 bg-slate-300"
                   resizeMode="cover"
                 />
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
 
@@ -409,6 +450,87 @@ export default function NewsDetailsScreen() {
             ))}
           </View>
         </View>
+
+        {/* Fullscreen Image Modal */}
+        <Modal
+          visible={showFullscreenImage}
+          transparent={false}
+          animationType="fade"
+          onRequestClose={() => setShowFullscreenImage(false)}
+          statusBarTranslucent={true}
+        >
+          <View style={{ flex: 1, backgroundColor: '#000' }}>
+            <StatusBar
+              barStyle="light-content"
+              backgroundColor="#000000"
+              translucent={true}
+              hidden={false}
+            />
+            <Animated.View
+              style={{
+                flex: 1,
+                transform: [{ translateY }],
+              }}
+              {...panResponder.panHandlers}
+            >
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(e) => {
+                  const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                  setFullscreenImageIndex(index);
+                }}
+                contentOffset={{ x: fullscreenImageIndex * width, y: 0 }}
+              >
+                {article.media.map((media, index) => (
+                  <View key={index} style={{ width, height }}>
+                    <Image
+                      source={{ uri: media.uri }}
+                      style={{ width, height }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Close Button */}
+              <TouchableOpacity
+                onPress={() => setShowFullscreenImage(false)}
+                style={{
+                  position: 'absolute',
+                  top: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 8 : 50,
+                  right: 16,
+                  width: 40,
+                  height: 40,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  borderRadius: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>×</Text>
+              </TouchableOpacity>
+
+              {/* Image Counter */}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 32,
+                  left: 0,
+                  right: 0,
+                  alignItems: 'center',
+                }}
+              >
+                <View style={{ backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}>
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                    {fullscreenImageIndex + 1} / {article.media.length}
+                  </Text>
+                </View>
+              </View>
+            </Animated.View>
+          </View>
+        </Modal>
 
         <View className="px-5 py-5">
           {/* Article Header */}

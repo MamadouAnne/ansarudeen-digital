@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter, Stack } from 'expo-router';
 import { getAllProjects, Project } from '@/services/projects';
@@ -156,22 +156,34 @@ export default function ProjectsScreen() {
                   onPress={() => router.push(`/projects/${project.id}`)}
                   className="bg-white rounded-3xl shadow-md border border-emerald-200/60 overflow-hidden mb-4"
                 >
-                  {/* Project Header */}
-                  <View className="p-4">
-                    <View className="flex-row items-center justify-between mb-3">
-                      <View className="flex-row items-center flex-1">
-                        <View className="w-14 h-14 bg-emerald-100 rounded-2xl items-center justify-center mr-3 shadow-sm">
-                          <Text className="text-3xl">{project.icon}</Text>
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-lg font-extrabold text-slate-800 mb-0.5">{project.title}</Text>
-                          <Text className="text-emerald-600 text-xs font-semibold">{project.titleArabic}</Text>
+                  {/* Project Image */}
+                  {project.media && project.media.length > 0 && (
+                    <View className="relative">
+                      <Image
+                        source={{ uri: project.media[0].uri }}
+                        className="w-full h-48"
+                        resizeMode="cover"
+                      />
+                      {/* Status Badge Overlay */}
+                      <View className="absolute top-3 right-3">
+                        <View className={`px-3 py-1.5 rounded-full border-2 ${statusColors.bg} ${statusColors.border} shadow-sm`}>
+                          <Text className={`text-xs font-extrabold ${statusColors.text}`}>
+                            {getStatusText(project.status)}
+                          </Text>
                         </View>
                       </View>
-                      <View className={`px-3 py-1.5 rounded-full border-2 ${statusColors.bg} ${statusColors.border}`}>
-                        <Text className={`text-xs font-extrabold ${statusColors.text}`}>
-                          {getStatusText(project.status)}
-                        </Text>
+                    </View>
+                  )}
+
+                  {/* Project Header */}
+                  <View className="p-4">
+                    <View className="flex-row items-center mb-3">
+                      <View className="w-14 h-14 bg-emerald-100 rounded-2xl items-center justify-center mr-3 shadow-sm">
+                        <Text className="text-3xl">{project.icon}</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-lg font-extrabold text-slate-800 mb-0.5">{project.title}</Text>
+                        <Text className="text-emerald-600 text-xs font-semibold">{project.titleArabic}</Text>
                       </View>
                     </View>
 
