@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, Platform, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { getProjectById, Project } from '@/services/projects';
+import { supabase } from '@/lib/supabase';
 
 const { width } = Dimensions.get('window');
+
+interface Comment {
+  id: number;
+  user_name: string;
+  comment_text: string;
+  created_at: string;
+}
 
 export default function ProjectDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -12,9 +20,15 @@ export default function ProjectDetailsScreen() {
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [commentText, setCommentText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     loadProject();
+    loadComments();
   }, [id]);
 
   const loadProject = async () => {
@@ -30,6 +44,53 @@ export default function ProjectDetailsScreen() {
       console.error('Error loading project:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadComments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('project_comments')
+        .select('*')
+        .eq('project_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setComments(data || []);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!userName.trim() || !commentText.trim()) {
+      Alert.alert('Error', 'Please enter your name and comment');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const { error } = await supabase
+        .from('project_comments')
+        .insert({
+          project_id: id,
+          user_name: userName.trim(),
+          comment_text: commentText.trim(),
+        });
+
+      if (error) throw error;
+
+      // Clear form and reload comments
+      setUserName('');
+      setCommentText('');
+      setShowCommentModal(false);
+      loadComments();
+      Alert.alert('Success', 'Comment added successfully!');
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      Alert.alert('Error', 'Failed to add comment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -262,6 +323,42 @@ export default function ProjectDetailsScreen() {
             </View>
           </View>
 
+          {/* Comments Section */}
+          <View className="bg-white rounded-3xl shadow-lg border border-emerald-200/60 p-6 mb-6">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-2xl font-extrabold text-slate-800">Comments ({comments.length})</Text>
+              <TouchableOpacity
+                onPress={() => setShowCommentModal(true)}
+                className="bg-emerald-600 px-5 py-2 rounded-full"
+              >
+                <Text className="text-white font-bold">Add Comment</Text>
+              </TouchableOpacity>
+            </View>
+
+            {comments.length === 0 ? (
+              <Text className="text-slate-500 text-center py-4">No comments yet. Be the first to comment!</Text>
+            ) : (
+              <View>
+                {comments.map((comment) => (
+                  <View key={comment.id} className="mb-4 pb-4 border-b border-slate-100">
+                    <View className="flex-row items-center mb-2">
+                      <View className="w-10 h-10 bg-emerald-100 rounded-full items-center justify-center mr-3">
+                        <Text className="text-emerald-600 font-bold text-lg">{comment.user_name[0].toUpperCase()}</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-slate-800 font-bold">{comment.user_name}</Text>
+                        <Text className="text-slate-500 text-xs">
+                          {new Date(comment.created_at).toLocaleDateString()} at {new Date(comment.created_at).toLocaleTimeString()}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="text-slate-700 ml-13">{comment.comment_text}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
           {/* Donate Button */}
           <Link href="/(tabs)/donate" asChild>
             <TouchableOpacity>
@@ -289,6 +386,65 @@ export default function ProjectDetailsScreen() {
 
         <View className="h-8"></View>
       </ScrollView>
+
+      {/* Comment Modal */}
+      <Modal
+        visible={showCommentModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCommentModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 justify-end bg-black/50"
+        >
+          <View className="bg-white rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-2xl font-extrabold text-slate-800">Add Comment</Text>
+              <TouchableOpacity onPress={() => setShowCommentModal(false)}>
+                <Text className="text-slate-500 text-3xl">×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-slate-700 font-bold mb-2">Your Name</Text>
+              <TextInput
+                className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-800"
+                placeholder="Enter your name"
+                value={userName}
+                onChangeText={setUserName}
+                editable={!isSubmitting}
+              />
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-slate-700 font-bold mb-2">Comment</Text>
+              <TextInput
+                className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-800"
+                placeholder="Share your thoughts..."
+                value={commentText}
+                onChangeText={setCommentText}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                editable={!isSubmitting}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={handleSubmitComment}
+              disabled={isSubmitting}
+              className={`bg-emerald-600 py-4 rounded-2xl ${isSubmitting ? 'opacity-50' : ''}`}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text className="text-white font-bold text-center text-lg">Submit Comment</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
