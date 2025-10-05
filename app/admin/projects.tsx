@@ -152,14 +152,22 @@ export default function AdminProjectsScreen() {
         const uri = selectedImages[i];
         const filename = `project_${projectId}_${Date.now()}_${i}.jpg`;
 
-        // Convert URI to blob
+        // Create form data for React Native
+        const formData = new FormData();
+        formData.append('file', {
+          uri: uri,
+          type: 'image/jpeg',
+          name: filename,
+        } as any);
+
+        // Convert URI to ArrayBuffer for Supabase
         const response = await fetch(uri);
-        const blob = await response.blob();
+        const arrayBuffer = await response.arrayBuffer();
 
         // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
           .from('project-media')
-          .upload(filename, blob, {
+          .upload(filename, arrayBuffer, {
             contentType: 'image/jpeg',
           });
 
