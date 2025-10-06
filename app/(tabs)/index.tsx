@@ -1,15 +1,41 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { supabase } from '@/lib/supabase';
 
 const { width } = Dimensions.get('window');
 
+interface Project {
+  id: number;
+  title: string;
+  title_arabic: string;
+  current_amount: number;
+  goal_amount: number;
+  status: string;
+}
+
+interface Event {
+  id: number;
+  title: string;
+  title_arabic: string;
+  date: string;
+  time: string;
+  location: string;
+  attendees: number;
+  capacity: number;
+  category: string;
+}
+
 export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
   const [activeSlide, setActiveSlide] = useState(0);
   const carouselRef = useRef<ScrollView>(null);
+  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+  const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const quickStats = {
     totalMembers: 1247,
@@ -40,17 +66,53 @@ export default function HomeScreen() {
     setActiveSlide(index);
   };
 
+  useEffect(() => {
+    fetchFeaturedContent();
+  }, []);
+
+  const fetchFeaturedContent = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch featured projects (active projects only, limit 3)
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('id, title, title_arabic, current_amount, goal_amount, status')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      // Fetch featured events (upcoming events only, limit 3)
+      const { data: events } = await supabase
+        .from('events')
+        .select('id, title, title_arabic, date, time, location, attendees, capacity, category')
+        .eq('status', 'upcoming')
+        .order('date', { ascending: true })
+        .limit(3);
+
+      setFeaturedProjects(projects || []);
+      setFeaturedEvents(events || []);
+    } catch (error) {
+      console.error('Error fetching featured content:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Auto-scroll carousel
   useEffect(() => {
+    const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 welcome + projects + events
+    if (totalSlides <= 1) return; // Don't auto-scroll if only welcome slide
+
     const interval = setInterval(() => {
       setActiveSlide((prev) => {
-        const next = (prev + 1) % 2; // 2 slides total
+        const next = (prev + 1) % totalSlides;
         carouselRef.current?.scrollTo({ x: next * width, animated: true });
         return next;
       });
-    }, 8000);
+    }, 5000); // 5 seconds per slide
     return () => clearInterval(interval);
-  }, []);
+  }, [featuredProjects.length, featuredEvents.length]);
 
   const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44;
 
@@ -64,161 +126,269 @@ export default function HomeScreen() {
       >
         {/* Header Carousel */}
         <View className="flex-1">
-          <ScrollView
-            ref={carouselRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            style={{ flex: 1 }}
-          >
-            {/* Slide 1: Header */}
-            <View style={{ width }}>
-              <View className="h-full overflow-hidden">
-                <LinearGradient
-                  colors={['#059669', '#047857', '#065f46']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  className="flex-1"
-                >
-
-                <View className="items-center justify-center h-full relative z-10">
-                  {/* Crescent and Star Symbol */}
-                  <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
-                    <Text className="text-3xl">☪️</Text>
-                  </View>
-                  <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
-                    Ansarudeen International
-                  </Text>
-                  <Text className="text-emerald-100 text-sm font-medium mb-2">
-                    أنصار الدين • Helpers of the Faith
-                  </Text>
-                  <Text className="text-white text-base font-medium">
-                    {isAuthenticated && user?.profile?.first_name
-                      ? `As-salamu alaykum, ${user.profile.first_name}!`
-                      : 'Building a stronger Muslim community'}
-                  </Text>
-                </View>
-              </LinearGradient>
-              </View>
+          {loading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator size="large" color="#059669" />
             </View>
-
-            {/* Slide 2: Fundraising */}
-            <View style={{ width }}>
-              <View className="h-full rounded-b-2xl overflow-hidden">
-                <LinearGradient
-                  colors={['#059669', '#047857', '#065f46']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  className="flex-1"
-                >
-                {/* Decorative Islamic pattern overlay */}
-                <View className="absolute inset-0 opacity-10">
-                  <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
-                  <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
-                  <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
+          ) : (
+            <>
+              <ScrollView
+                ref={carouselRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                style={{ flex: 1 }}
+              >
+              {/* Slide 1: Welcome Header */}
+              <View style={{ width }}>
+                <View className="h-full overflow-hidden">
+                  <LinearGradient
+                    colors={['#059669', '#047857', '#065f46']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    className="flex-1"
+                  >
+                    <View className="items-center justify-center h-full relative z-10">
+                      {/* Crescent and Star Symbol */}
+                      <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
+                        <Text className="text-3xl">☪️</Text>
+                      </View>
+                      <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
+                        Ansarudeen International
+                      </Text>
+                      <Text className="text-emerald-100 text-sm font-medium mb-2">
+                        أنصار الدين • Helpers of the Faith
+                      </Text>
+                      <Text className="text-white text-base font-medium">
+                        {isAuthenticated && user?.profile?.first_name
+                          ? `As-salamu alaykum, ${user.profile.first_name}!`
+                          : 'Building a stronger Muslim community'}
+                      </Text>
+                    </View>
+                  </LinearGradient>
                 </View>
-                  {/* Decorative Islamic pattern overlay */}
-                  <View className="absolute inset-0 opacity-10">
-                    <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
-                    <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
-                    <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
-                  </View>
+              </View>
 
-                  <View className="flex-1" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 44 }}>
-                    {/* Project Card */}
-                    <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
-                      {/* Project Header */}
-                      <View className="p-3 border-b border-slate-100">
-                        <View className="flex-row items-center justify-between mb-2">
-                          <View className="flex-row items-center flex-1">
-                            <View className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl items-center justify-center mr-3 border-2 border-emerald-300 shadow-sm">
-                              <Text className="text-2xl">🕌</Text>
-                            </View>
-                            <View>
-                              <Text className="text-slate-800 text-base font-extrabold">Masjid Expansion</Text>
-                              <Text className="text-emerald-600 text-xs font-semibold">توسعة المسجد</Text>
-                            </View>
-                          </View>
-                          <View className="px-3 py-1.5 rounded-full border-2 bg-emerald-100 border-emerald-300 shadow-sm">
-                            <Text className="text-xs font-extrabold text-emerald-700">
-                              Active
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      {/* Progress Section */}
-                      <View className="p-3">
-                        <View className="mb-1.5">
-                          <View className="flex-row justify-between mb-1">
-                            <Text className="text-slate-600 text-xs font-bold">Progress</Text>
-                            <Text className="text-emerald-600 text-xs font-extrabold">45%</Text>
-                          </View>
-                          <View className="bg-slate-200 rounded-full h-1.5">
-                            <View
-                              className="bg-emerald-600 h-1.5 rounded-full"
-                              style={{ width: '45%' }}
-                            />
-                          </View>
+              {/* Featured Projects */}
+              {featuredProjects.map((project) => {
+                const progress = (project.current_amount / project.goal_amount) * 100;
+                return (
+                  <View key={`project-${project.id}`} style={{ width }}>
+                    <View className="h-full overflow-hidden">
+                      <LinearGradient
+                        colors={['#059669', '#047857', '#065f46']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        className="flex-1"
+                      >
+                        {/* Decorative Islamic pattern overlay */}
+                        <View className="absolute inset-0 opacity-10">
+                          <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
+                          <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
+                          <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
                         </View>
 
-                        {/* Project Info */}
-                        <View className="flex-row justify-between space-x-2 mb-3">
-                          <View className="bg-emerald-50 rounded-lg p-2 flex-1 border border-emerald-200">
-                            <Text className="text-emerald-600 text-xs font-bold">Raised</Text>
-                            <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(45000)}</Text>
-                          </View>
-                          <View className="bg-amber-50 rounded-lg p-2 flex-1 border border-amber-200 ml-2">
-                            <Text className="text-amber-600 text-xs font-bold">Goal</Text>
-                            <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(100000)}</Text>
-                          </View>
-                        </View>
-
-                        {/* Donate Button */}
-                        <Link href="/projects/" asChild>
-                          <TouchableOpacity>
-                            <LinearGradient
-                              colors={['#059669', '#047857']}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                              className="py-4 rounded-2xl shadow-xl"
-                              style={{
-                                shadowColor: '#059669',
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.3,
-                                shadowRadius: 8,
-                                elevation: 8,
-                              }}
-                            >
-                              <View className="flex-row items-center justify-center">
-                                <Text className="text-white text-center font-extrabold text-lg mr-2">Donate Now</Text>
-                                <Text className="text-white text-xl">💝</Text>
+                        <View className="flex-1" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 44 }}>
+                          {/* Project Card */}
+                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
+                            {/* Project Header */}
+                            <View className="p-3 border-b border-slate-100">
+                              <View className="flex-row items-center justify-between mb-2">
+                                <View className="flex-row items-center flex-1">
+                                  <View className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl items-center justify-center mr-3 border-2 border-emerald-300 shadow-sm">
+                                    <Text className="text-2xl">🕌</Text>
+                                  </View>
+                                  <View className="flex-1">
+                                    <Text className="text-slate-800 text-base font-extrabold">{project.title}</Text>
+                                    <Text className="text-emerald-600 text-xs font-semibold">{project.title_arabic}</Text>
+                                  </View>
+                                </View>
+                                <View className="px-3 py-1.5 rounded-full border-2 bg-emerald-100 border-emerald-300 shadow-sm">
+                                  <Text className="text-xs font-extrabold text-emerald-700">
+                                    Active
+                                  </Text>
+                                </View>
                               </View>
-                            </LinearGradient>
-                          </TouchableOpacity>
-                        </Link>
-                      </View>
+                            </View>
+
+                            {/* Progress Section */}
+                            <View className="p-3">
+                              <View className="mb-1.5">
+                                <View className="flex-row justify-between mb-1">
+                                  <Text className="text-slate-600 text-xs font-bold">Progress</Text>
+                                  <Text className="text-emerald-600 text-xs font-extrabold">{Math.round(progress)}%</Text>
+                                </View>
+                                <View className="bg-slate-200 rounded-full h-1.5">
+                                  <View
+                                    className="bg-emerald-600 h-1.5 rounded-full"
+                                    style={{ width: `${Math.min(progress, 100)}%` }}
+                                  />
+                                </View>
+                              </View>
+
+                              {/* Project Info */}
+                              <View className="flex-row justify-between space-x-2 mb-3">
+                                <View className="bg-emerald-50 rounded-lg p-2 flex-1 border border-emerald-200">
+                                  <Text className="text-emerald-600 text-xs font-bold">Raised</Text>
+                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.current_amount)}</Text>
+                                </View>
+                                <View className="bg-amber-50 rounded-lg p-2 flex-1 border border-amber-200 ml-2">
+                                  <Text className="text-amber-600 text-xs font-bold">Goal</Text>
+                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.goal_amount)}</Text>
+                                </View>
+                              </View>
+
+                              {/* Donate Button */}
+                              <TouchableOpacity onPress={() => router.push(`/projects/${project.id}`)}>
+                                <LinearGradient
+                                  colors={['#059669', '#047857']}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 0 }}
+                                  className="py-4 rounded-2xl shadow-xl"
+                                  style={{
+                                    shadowColor: '#059669',
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.3,
+                                    shadowRadius: 8,
+                                    elevation: 8,
+                                  }}
+                                >
+                                  <View className="flex-row items-center justify-center">
+                                    <Text className="text-white text-center font-extrabold text-lg mr-2">Donate Now</Text>
+                                    <Text className="text-white text-xl">💝</Text>
+                                  </View>
+                                </LinearGradient>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </LinearGradient>
                     </View>
                   </View>
-                </LinearGradient>
+                );
+              })}
+
+              {/* Featured Events */}
+              {featuredEvents.map((event) => {
+                return (
+                  <View key={`event-${event.id}`} style={{ width }}>
+                    <View className="h-full overflow-hidden">
+                      <LinearGradient
+                        colors={['#059669', '#047857', '#065f46']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        className="flex-1"
+                      >
+                        {/* Decorative Islamic pattern overlay */}
+                        <View className="absolute inset-0 opacity-10">
+                          <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
+                          <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
+                          <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
+                        </View>
+
+                        <View className="flex-1" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 44 }}>
+                          {/* Event Card */}
+                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
+                            {/* Event Header */}
+                            <View className="p-3 border-b border-slate-100">
+                              <View className="flex-row items-center justify-between mb-2">
+                                <View className="flex-row items-center flex-1">
+                                  <View className="w-12 h-12 bg-gradient-to-br from-sky-100 to-sky-200 rounded-2xl items-center justify-center mr-3 border-2 border-sky-300 shadow-sm">
+                                    <Text className="text-2xl">📅</Text>
+                                  </View>
+                                  <View className="flex-1">
+                                    <Text className="text-slate-800 text-base font-extrabold">{event.title}</Text>
+                                    <Text className="text-emerald-600 text-xs font-semibold">{event.title_arabic}</Text>
+                                  </View>
+                                </View>
+                                <View className="px-3 py-1.5 rounded-full border-2 bg-sky-100 border-sky-300 shadow-sm">
+                                  <Text className="text-xs font-extrabold text-sky-700">
+                                    {event.category}
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+
+                            {/* Event Details */}
+                            <View className="p-3">
+                              {/* Date and Time */}
+                              <View className="flex-row items-center mb-2">
+                                <View className="w-8 h-8 bg-emerald-100 rounded-lg items-center justify-center mr-2">
+                                  <Text className="text-base">🕐</Text>
+                                </View>
+                                <View className="flex-1">
+                                  <Text className="text-slate-700 text-sm font-bold">{new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+                                  <Text className="text-slate-600 text-xs">{event.time}</Text>
+                                </View>
+                              </View>
+
+                              {/* Location */}
+                              <View className="flex-row items-center mb-2">
+                                <View className="w-8 h-8 bg-amber-100 rounded-lg items-center justify-center mr-2">
+                                  <Text className="text-base">📍</Text>
+                                </View>
+                                <View className="flex-1">
+                                  <Text className="text-slate-700 text-sm font-bold">{event.location}</Text>
+                                </View>
+                              </View>
+
+                              {/* Attendees */}
+                              <View className="flex-row items-center mb-3">
+                                <View className="w-8 h-8 bg-purple-100 rounded-lg items-center justify-center mr-2">
+                                  <Text className="text-base">👥</Text>
+                                </View>
+                                <View className="flex-1">
+                                  <Text className="text-slate-700 text-sm font-bold">{event.attendees} / {event.capacity} attendees</Text>
+                                </View>
+                              </View>
+
+                              {/* View Event Button */}
+                              <TouchableOpacity onPress={() => router.push(`/events/${event.id}`)}>
+                                <LinearGradient
+                                  colors={['#059669', '#047857']}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 0 }}
+                                  className="py-4 rounded-2xl shadow-xl"
+                                  style={{
+                                    shadowColor: '#059669',
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.3,
+                                    shadowRadius: 8,
+                                    elevation: 8,
+                                  }}
+                                >
+                                  <View className="flex-row items-center justify-center">
+                                    <Text className="text-white text-center font-extrabold text-lg mr-2">View Event</Text>
+                                    <Text className="text-white text-xl">📅</Text>
+                                  </View>
+                                </LinearGradient>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </View>
+                );
+              })}
+
+              </ScrollView>
+
+              {/* Pagination Dots */}
+              <View className="absolute bottom-3 left-0 right-0 flex-row justify-center">
+                {Array.from({ length: 1 + featuredProjects.length + featuredEvents.length }).map((_, index) => (
+                  <View
+                    key={index}
+                    className={`h-2 rounded-full mx-1 ${
+                      index === activeSlide ? 'bg-white w-6' : 'bg-white/40 w-2'
+                    }`}
+                  />
+                ))}
               </View>
-            </View>
-
-          </ScrollView>
-
-          {/* Pagination Dots */}
-          <View className="absolute bottom-3 left-0 right-0 flex-row justify-center">
-            {[0, 1].map((index) => (
-              <View
-                key={index}
-                className={`h-2 rounded-full mx-1 ${
-                  index === activeSlide ? 'bg-white w-6' : 'bg-white/40 w-2'
-                }`}
-              />
-            ))}
-          </View>
+            </>
+          )}
         </View>
 
         {/* Horizontal Quick Access Bar */}
