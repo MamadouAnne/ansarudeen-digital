@@ -17,6 +17,7 @@ interface Project {
   progress: number;
   target_amount: number;
   raised_amount: number;
+  featured: boolean;
 }
 
 export default function AdminProjectsScreen() {
@@ -114,7 +115,7 @@ export default function AdminProjectsScreen() {
       setLoading(true);
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select('id, title, title_arabic, description, full_description, category, status, progress, target_amount, raised_amount, featured, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -318,6 +319,22 @@ export default function AdminProjectsScreen() {
     } catch (error) {
       console.error('Error updating status:', error);
       Alert.alert('Error', 'Failed to update status');
+    }
+  };
+
+  const handleToggleFeatured = async (id: number, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ featured: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      Alert.alert('Success', `${!currentStatus ? 'Featured' : 'Unfeatured'} successfully`);
+      loadProjects();
+    } catch (error) {
+      console.error('Error toggling featured:', error);
+      Alert.alert('Error', 'Failed to update featured status');
     }
   };
 
@@ -586,8 +603,15 @@ export default function AdminProjectsScreen() {
               <View className="flex-1">
                 <Text className="text-lg font-bold text-slate-800">{project.title}</Text>
                 <Text className="text-emerald-600 text-sm">{project.title_arabic}</Text>
-                <View className={`self-start px-3 py-1 rounded-full mt-2 ${getStatusColor(project.status)}`}>
-                  <Text className="text-xs font-bold">{project.status}</Text>
+                <View className="flex-row items-center mt-2">
+                  <View className={`px-3 py-1 rounded-full ${getStatusColor(project.status)}`}>
+                    <Text className="text-xs font-bold">{project.status}</Text>
+                  </View>
+                  {project.featured && (
+                    <View className="px-3 py-1.5 rounded-full bg-amber-100 border-2 border-amber-300 ml-2">
+                      <Text className="text-xs font-extrabold text-amber-700">⭐ FEATURED</Text>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
@@ -603,7 +627,7 @@ export default function AdminProjectsScreen() {
               </Text>
             </View>
 
-            <View className="flex-row">
+            <View className="flex-row mb-2">
               <TouchableOpacity
                 onPress={() => openEditModal(project)}
                 className="flex-1 bg-emerald-100 py-2 rounded-lg mr-2"
@@ -626,6 +650,16 @@ export default function AdminProjectsScreen() {
                 className="flex-1 bg-red-100 py-2 rounded-lg ml-2"
               >
                 <Text className="text-red-700 font-bold text-center text-sm">Delete</Text>
+              </TouchableOpacity>
+            </View>
+            <View className="flex-row">
+              <TouchableOpacity
+                className={`${project.featured ? 'bg-amber-600' : 'bg-slate-400'} py-2 px-4 rounded-xl flex-1`}
+                onPress={() => handleToggleFeatured(project.id, project.featured)}
+              >
+                <Text className="text-white text-center font-bold text-sm">
+                  {project.featured ? '⭐ Featured' : 'Feature'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

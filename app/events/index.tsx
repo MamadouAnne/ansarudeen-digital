@@ -327,6 +327,7 @@ export default function EventsScreen() {
           )}
         </ScrollView>
       )}
+
     </View>
   );
 }

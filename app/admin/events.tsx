@@ -26,6 +26,7 @@ interface Event {
   organizer: string;
   contact_email: string;
   contact_phone: string;
+  featured: boolean;
 }
 
 export default function AdminEventsScreen() {
@@ -122,7 +123,7 @@ export default function AdminEventsScreen() {
       setLoading(true);
       const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select('id, title, title_arabic, description, full_description, date, time, location, location_arabic, address, category, status, attendees, capacity, price, organizer, contact_email, contact_phone, featured')
         .order('date', { ascending: false });
 
       if (error) throw error;
@@ -320,6 +321,22 @@ export default function AdminEventsScreen() {
     } catch (error) {
       console.error('Error updating status:', error);
       Alert.alert('Error', 'Failed to update status');
+    }
+  };
+
+  const handleToggleFeatured = async (id: number, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ featured: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      Alert.alert('Success', `${!currentStatus ? 'Featured' : 'Unfeatured'} successfully`);
+      loadEvents();
+    } catch (error) {
+      console.error('Error toggling featured:', error);
+      Alert.alert('Error', 'Failed to update featured status');
     }
   };
 
@@ -886,10 +903,15 @@ export default function AdminEventsScreen() {
                   {event.status.toUpperCase()}
                 </Text>
               </View>
+              {event.featured && (
+                <View className="px-3 py-1.5 rounded-full bg-amber-100 border-2 border-amber-300 ml-2">
+                  <Text className="text-xs font-extrabold text-amber-700">⭐ FEATURED</Text>
+                </View>
+              )}
             </View>
 
             {/* Actions */}
-            <View className="flex-row space-x-2">
+            <View className="flex-row space-x-2 mb-2">
               <TouchableOpacity
                 className="bg-blue-600 py-2 px-4 rounded-xl flex-1 mr-2"
                 onPress={() => openEditModal(event)}
@@ -917,6 +939,16 @@ export default function AdminEventsScreen() {
                 onPress={() => handleDeleteEvent(event.id)}
               >
                 <Text className="text-white text-center font-bold text-sm">Delete</Text>
+              </TouchableOpacity>
+            </View>
+            <View className="flex-row">
+              <TouchableOpacity
+                className={`${event.featured ? 'bg-amber-600' : 'bg-slate-400'} py-2 px-4 rounded-xl flex-1`}
+                onPress={() => handleToggleFeatured(event.id, event.featured)}
+              >
+                <Text className="text-white text-center font-bold text-sm">
+                  {event.featured ? '⭐ Featured' : 'Feature'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { Link, useRouter, useFocusEffect } from 'expo-router';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { supabase } from '@/lib/supabase';
 
@@ -11,8 +11,8 @@ interface Project {
   id: number;
   title: string;
   title_arabic: string;
-  current_amount: number;
-  goal_amount: number;
+  raised_amount: number;
+  target_amount: number;
   status: string;
 }
 
@@ -70,23 +70,31 @@ export default function HomeScreen() {
     fetchFeaturedContent();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchFeaturedContent();
+    }, [])
+  );
+
   const fetchFeaturedContent = async () => {
     try {
       setLoading(true);
 
-      // Fetch featured projects (active projects only, limit 3)
+      // Fetch featured projects (active projects with featured = true, limit 3)
       const { data: projects } = await supabase
         .from('projects')
-        .select('id, title, title_arabic, current_amount, goal_amount, status')
-        .eq('status', 'active')
+        .select('id, title, title_arabic, raised_amount, target_amount, status')
+        .eq('status', 'ongoing')
+        .eq('featured', true)
         .order('created_at', { ascending: false })
         .limit(3);
 
-      // Fetch featured events (upcoming events only, limit 3)
+      // Fetch featured events (upcoming events with featured = true, limit 3)
       const { data: events } = await supabase
         .from('events')
         .select('id, title, title_arabic, date, time, location, attendees, capacity, category')
         .eq('status', 'upcoming')
+        .eq('featured', true)
         .order('date', { ascending: true })
         .limit(3);
 
@@ -125,7 +133,7 @@ export default function HomeScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         {/* Header Carousel */}
-        <View className="flex-1">
+        <View className="h-64">
           {loading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#059669" />
@@ -139,29 +147,29 @@ export default function HomeScreen() {
                 showsHorizontalScrollIndicator={false}
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
-                style={{ flex: 1 }}
+                className="h-64"
               >
               {/* Slide 1: Welcome Header */}
-              <View style={{ width }}>
-                <View className="h-full overflow-hidden">
+              <View style={{ width }} className="h-64">
+                <View className="h-64 overflow-hidden">
                   <LinearGradient
                     colors={['#059669', '#047857', '#065f46']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    className="flex-1"
+                    className="h-64"
                   >
-                    <View className="items-center justify-center h-full relative z-10">
+                    <View className="items-center justify-center h-64 relative z-10 pb-8" style={{ paddingTop }}>
                       {/* Crescent and Star Symbol */}
-                      <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
-                        <Text className="text-3xl">☪️</Text>
+                      <View className="w-14 h-14 bg-white/20 rounded-full items-center justify-center mb-2 border-2 border-white/40">
+                        <Text className="text-2xl">☪️</Text>
                       </View>
-                      <Text className="text-white text-3xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
+                      <Text className="text-white text-2xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
                         Ansarudeen International
                       </Text>
-                      <Text className="text-emerald-100 text-sm font-medium mb-2">
+                      <Text className="text-emerald-100 text-xs font-medium mb-1">
                         أنصار الدين • Helpers of the Faith
                       </Text>
-                      <Text className="text-white text-base font-medium">
+                      <Text className="text-white text-sm font-medium">
                         {isAuthenticated && user?.profile?.first_name
                           ? `As-salamu alaykum, ${user.profile.first_name}!`
                           : 'Building a stronger Muslim community'}
@@ -173,15 +181,15 @@ export default function HomeScreen() {
 
               {/* Featured Projects */}
               {featuredProjects.map((project) => {
-                const progress = (project.current_amount / project.goal_amount) * 100;
+                const progress = (project.raised_amount / project.target_amount) * 100;
                 return (
-                  <View key={`project-${project.id}`} style={{ width }}>
-                    <View className="h-full overflow-hidden">
+                  <View key={`project-${project.id}`} style={{ width }} className="h-64">
+                    <View className="h-64 overflow-hidden">
                       <LinearGradient
                         colors={['#059669', '#047857', '#065f46']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        className="flex-1"
+                        className="h-64"
                       >
                         {/* Decorative Islamic pattern overlay */}
                         <View className="absolute inset-0 opacity-10">
@@ -190,22 +198,22 @@ export default function HomeScreen() {
                           <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
                         </View>
 
-                        <View className="flex-1" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 44 }}>
+                        <View className="h-64 pb-8" style={{ paddingTop }}>
                           {/* Project Card */}
-                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
+                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200">
                             {/* Project Header */}
-                            <View className="p-3 border-b border-slate-100">
-                              <View className="flex-row items-center justify-between mb-2">
+                            <View className="p-2.5 border-b-2 border-slate-100">
+                              <View className="flex-row items-center justify-between">
                                 <View className="flex-row items-center flex-1">
-                                  <View className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl items-center justify-center mr-3 border-2 border-emerald-300 shadow-sm">
-                                    <Text className="text-2xl">🕌</Text>
+                                  <View className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl items-center justify-center mr-2.5 border-2 border-emerald-300">
+                                    <Text className="text-xl">🕌</Text>
                                   </View>
                                   <View className="flex-1">
-                                    <Text className="text-slate-800 text-base font-extrabold">{project.title}</Text>
+                                    <Text className="text-slate-800 text-sm font-extrabold">{project.title}</Text>
                                     <Text className="text-emerald-600 text-xs font-semibold">{project.title_arabic}</Text>
                                   </View>
                                 </View>
-                                <View className="px-3 py-1.5 rounded-full border-2 bg-emerald-100 border-emerald-300 shadow-sm">
+                                <View className="px-2.5 py-1 rounded-full border-2 bg-emerald-100 border-emerald-300">
                                   <Text className="text-xs font-extrabold text-emerald-700">
                                     Active
                                   </Text>
@@ -214,8 +222,8 @@ export default function HomeScreen() {
                             </View>
 
                             {/* Progress Section */}
-                            <View className="p-3">
-                              <View className="mb-1.5">
+                            <View className="p-2.5">
+                              <View className="mb-2">
                                 <View className="flex-row justify-between mb-1">
                                   <Text className="text-slate-600 text-xs font-bold">Progress</Text>
                                   <Text className="text-emerald-600 text-xs font-extrabold">{Math.round(progress)}%</Text>
@@ -229,14 +237,14 @@ export default function HomeScreen() {
                               </View>
 
                               {/* Project Info */}
-                              <View className="flex-row justify-between space-x-2 mb-3">
-                                <View className="bg-emerald-50 rounded-lg p-2 flex-1 border border-emerald-200">
+                              <View className="flex-row justify-between space-x-2 mb-2.5">
+                                <View className="bg-emerald-50 rounded-lg p-1.5 flex-1 border border-emerald-200">
                                   <Text className="text-emerald-600 text-xs font-bold">Raised</Text>
-                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.current_amount)}</Text>
+                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.raised_amount)}</Text>
                                 </View>
-                                <View className="bg-amber-50 rounded-lg p-2 flex-1 border border-amber-200 ml-2">
+                                <View className="bg-amber-50 rounded-lg p-1.5 flex-1 border border-amber-200 ml-2">
                                   <Text className="text-amber-600 text-xs font-bold">Goal</Text>
-                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.goal_amount)}</Text>
+                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.target_amount)}</Text>
                                 </View>
                               </View>
 
@@ -246,18 +254,11 @@ export default function HomeScreen() {
                                   colors={['#059669', '#047857']}
                                   start={{ x: 0, y: 0 }}
                                   end={{ x: 1, y: 0 }}
-                                  className="py-4 rounded-2xl shadow-xl"
-                                  style={{
-                                    shadowColor: '#059669',
-                                    shadowOffset: { width: 0, height: 4 },
-                                    shadowOpacity: 0.3,
-                                    shadowRadius: 8,
-                                    elevation: 8,
-                                  }}
+                                  className="py-2.5 rounded-xl"
                                 >
                                   <View className="flex-row items-center justify-center">
-                                    <Text className="text-white text-center font-extrabold text-lg mr-2">Donate Now</Text>
-                                    <Text className="text-white text-xl">💝</Text>
+                                    <Text className="text-white text-center font-extrabold text-sm mr-1">Donate Now</Text>
+                                    <Text className="text-white text-base">💝</Text>
                                   </View>
                                 </LinearGradient>
                               </TouchableOpacity>
@@ -273,13 +274,13 @@ export default function HomeScreen() {
               {/* Featured Events */}
               {featuredEvents.map((event) => {
                 return (
-                  <View key={`event-${event.id}`} style={{ width }}>
-                    <View className="h-full overflow-hidden">
+                  <View key={`event-${event.id}`} style={{ width }} className="h-64">
+                    <View className="h-64 overflow-hidden">
                       <LinearGradient
                         colors={['#059669', '#047857', '#065f46']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        className="flex-1"
+                        className="h-64"
                       >
                         {/* Decorative Islamic pattern overlay */}
                         <View className="absolute inset-0 opacity-10">
@@ -288,22 +289,22 @@ export default function HomeScreen() {
                           <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
                         </View>
 
-                        <View className="flex-1" style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 44 }}>
+                        <View className="h-64 pb-8" style={{ paddingTop }}>
                           {/* Event Card */}
-                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200 overflow-hidden">
+                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200">
                             {/* Event Header */}
-                            <View className="p-3 border-b border-slate-100">
-                              <View className="flex-row items-center justify-between mb-2">
+                            <View className="p-2.5 border-b-2 border-slate-100">
+                              <View className="flex-row items-center justify-between">
                                 <View className="flex-row items-center flex-1">
-                                  <View className="w-12 h-12 bg-gradient-to-br from-sky-100 to-sky-200 rounded-2xl items-center justify-center mr-3 border-2 border-sky-300 shadow-sm">
-                                    <Text className="text-2xl">📅</Text>
+                                  <View className="w-10 h-10 bg-gradient-to-br from-sky-100 to-sky-200 rounded-xl items-center justify-center mr-2.5 border-2 border-sky-300">
+                                    <Text className="text-xl">📅</Text>
                                   </View>
                                   <View className="flex-1">
-                                    <Text className="text-slate-800 text-base font-extrabold">{event.title}</Text>
+                                    <Text className="text-slate-800 text-sm font-extrabold">{event.title}</Text>
                                     <Text className="text-emerald-600 text-xs font-semibold">{event.title_arabic}</Text>
                                   </View>
                                 </View>
-                                <View className="px-3 py-1.5 rounded-full border-2 bg-sky-100 border-sky-300 shadow-sm">
+                                <View className="px-2.5 py-1 rounded-full border-2 bg-sky-100 border-sky-300">
                                   <Text className="text-xs font-extrabold text-sky-700">
                                     {event.category}
                                   </Text>
@@ -312,35 +313,34 @@ export default function HomeScreen() {
                             </View>
 
                             {/* Event Details */}
-                            <View className="p-3">
+                            <View className="p-2.5">
                               {/* Date and Time */}
-                              <View className="flex-row items-center mb-2">
-                                <View className="w-8 h-8 bg-emerald-100 rounded-lg items-center justify-center mr-2">
-                                  <Text className="text-base">🕐</Text>
+                              <View className="flex-row items-center mb-1.5">
+                                <View className="w-7 h-7 bg-emerald-100 rounded-lg items-center justify-center mr-2">
+                                  <Text className="text-sm">🕐</Text>
                                 </View>
                                 <View className="flex-1">
-                                  <Text className="text-slate-700 text-sm font-bold">{new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
-                                  <Text className="text-slate-600 text-xs">{event.time}</Text>
+                                  <Text className="text-slate-700 text-xs font-bold">{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {event.time}</Text>
                                 </View>
                               </View>
 
                               {/* Location */}
-                              <View className="flex-row items-center mb-2">
-                                <View className="w-8 h-8 bg-amber-100 rounded-lg items-center justify-center mr-2">
-                                  <Text className="text-base">📍</Text>
+                              <View className="flex-row items-center mb-1.5">
+                                <View className="w-7 h-7 bg-amber-100 rounded-lg items-center justify-center mr-2">
+                                  <Text className="text-sm">📍</Text>
                                 </View>
                                 <View className="flex-1">
-                                  <Text className="text-slate-700 text-sm font-bold">{event.location}</Text>
+                                  <Text className="text-slate-700 text-xs font-bold">{event.location}</Text>
                                 </View>
                               </View>
 
                               {/* Attendees */}
-                              <View className="flex-row items-center mb-3">
-                                <View className="w-8 h-8 bg-purple-100 rounded-lg items-center justify-center mr-2">
-                                  <Text className="text-base">👥</Text>
+                              <View className="flex-row items-center mb-2.5">
+                                <View className="w-7 h-7 bg-purple-100 rounded-lg items-center justify-center mr-2">
+                                  <Text className="text-sm">👥</Text>
                                 </View>
                                 <View className="flex-1">
-                                  <Text className="text-slate-700 text-sm font-bold">{event.attendees} / {event.capacity} attendees</Text>
+                                  <Text className="text-slate-700 text-xs font-bold">{event.attendees} / {event.capacity}</Text>
                                 </View>
                               </View>
 
@@ -350,18 +350,11 @@ export default function HomeScreen() {
                                   colors={['#059669', '#047857']}
                                   start={{ x: 0, y: 0 }}
                                   end={{ x: 1, y: 0 }}
-                                  className="py-4 rounded-2xl shadow-xl"
-                                  style={{
-                                    shadowColor: '#059669',
-                                    shadowOffset: { width: 0, height: 4 },
-                                    shadowOpacity: 0.3,
-                                    shadowRadius: 8,
-                                    elevation: 8,
-                                  }}
+                                  className="py-2.5 rounded-xl"
                                 >
                                   <View className="flex-row items-center justify-center">
-                                    <Text className="text-white text-center font-extrabold text-lg mr-2">View Event</Text>
-                                    <Text className="text-white text-xl">📅</Text>
+                                    <Text className="text-white text-center font-extrabold text-sm mr-1">View Event</Text>
+                                    <Text className="text-white text-base">📅</Text>
                                   </View>
                                 </LinearGradient>
                               </TouchableOpacity>
@@ -377,7 +370,7 @@ export default function HomeScreen() {
               </ScrollView>
 
               {/* Pagination Dots */}
-              <View className="absolute bottom-3 left-0 right-0 flex-row justify-center">
+              <View className="absolute bottom-6 left-0 right-0 flex-row justify-center">
                 {Array.from({ length: 1 + featuredProjects.length + featuredEvents.length }).map((_, index) => (
                   <View
                     key={index}
