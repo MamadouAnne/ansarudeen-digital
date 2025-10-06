@@ -25,7 +25,7 @@ export function AuthNavigator() {
 
     const inAuthGroup = segments[0] === 'auth';
     const currentPath = segments.join('/');
-    const inProtectedArea = segments[0] === '(tabs)' || segments[0] === 'donation-tracker' || segments[0] === 'projects' || segments[0] === 'news' || segments[0] === 'admin' || segments[0] === 'events';
+    const inProtectedArea = segments[0] === '(tabs)' || segments[0] === 'donation-tracker' || segments[0] === 'projects' || segments[0] === 'news' || segments[0] === 'admin' || segments[0] === 'events' || segments[0] === 'medina-baye-project';
 
     // Skip navigation if loading to reduce redundant redirects
     if (isLoading) {
@@ -76,6 +76,7 @@ export function AuthNavigator() {
       <Stack.Screen name="auth/signin" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="donation-tracker" options={{ headerShown: false }} />
+      <Stack.Screen name="medina-baye-project" options={{ headerShown: false }} />
       <Stack.Screen name="projects/index" options={{ headerShown: false }} />
       <Stack.Screen name="projects/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="news/index" options={{ headerShown: false }} />

@@ -4,6 +4,7 @@ import { Link, useRouter, useFocusEffect } from 'expo-router';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import MedinaBayeProjectCard from '@/components/MedinaBayeProjectCard';
 
 const { width } = Dimensions.get('window');
 
@@ -452,6 +453,9 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </ScrollView>
         </View>
+
+        {/* Medina Baye Project Section */}
+        <MedinaBayeProjectCard />
 
         <View className="px-4">
           {/* Community Overview with Islamic Design */}
