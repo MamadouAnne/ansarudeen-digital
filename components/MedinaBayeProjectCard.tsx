@@ -22,7 +22,7 @@ export default function MedinaBayeProjectCard() {
           imageStyle={styles.image}
         >
           <LinearGradient
-            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+            colors={['rgba(5, 150, 105, 0.5)', 'rgba(4, 120, 87, 0.85)', 'rgba(6, 95, 70, 0.95)']}
             style={styles.gradient}
           >
             {/* Badge */}
@@ -35,6 +35,7 @@ export default function MedinaBayeProjectCard() {
             <View style={styles.content}>
               <View style={styles.titleContainer}>
                 <Text style={styles.title}>MEDINA BAYE CITY</Text>
+                <View style={styles.titleDivider} />
                 <Text style={styles.subtitle}>
                   Projet de création d'une nouvelle cité d'appui à Médina Baye
                 </Text>
@@ -96,11 +97,6 @@ const styles = StyleSheet.create({
     height: 480,
     borderRadius: 24,
     overflow: 'hidden',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
   },
   imageBackground: {
     flex: 1,
@@ -135,19 +131,31 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 36,
+    fontWeight: '900',
     color: '#fff',
-    letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    letterSpacing: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 6,
+    textAlign: 'center',
+  },
+  titleDivider: {
+    height: 4,
+    width: 60,
+    backgroundColor: '#FFD700',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginVertical: 8,
   },
   subtitle: {
     fontSize: 15,
-    color: '#E5E7EB',
+    color: '#fff',
     lineHeight: 22,
-    fontWeight: '500',
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.6)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   infoRow: {
     flexDirection: 'row',

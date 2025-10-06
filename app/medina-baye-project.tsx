@@ -6,7 +6,6 @@ import {
   ScrollView,
   ImageBackground,
   TouchableOpacity,
-  Dimensions,
   StatusBar,
   Platform,
 } from 'react-native';
@@ -14,8 +13,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { MEDINA_BAYE_PROJECT, PROJECT_GOVERNANCE, PROJECT_STATS } from '@/constants/projectData';
-
-const { width } = Dimensions.get('window');
 
 export default function MedinaBayeProjectScreen() {
   const [activeTab, setActiveTab] = useState<'overview' | 'components' | 'benefits' | 'strategy'>('overview');
@@ -35,7 +32,7 @@ export default function MedinaBayeProjectScreen() {
           imageStyle={styles.heroImage}
         >
           <LinearGradient
-            colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+            colors={['rgba(5, 150, 105, 0.5)', 'rgba(4, 120, 87, 0.85)', 'rgba(6, 95, 70, 0.95)']}
             style={[styles.heroGradient, { paddingTop }]}
           >
             {/* Back Button */}
