@@ -298,6 +298,16 @@ export default function ProfileScreen() {
                     <Text className="text-purple-600 text-xl font-bold">→</Text>
                   </TouchableOpacity>
                 </Link>
+
+                <Link href="/admin/events" asChild>
+                  <TouchableOpacity className="flex-row items-center p-4 bg-white rounded-2xl border-2 border-purple-300">
+                    <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
+                      <Text className="text-purple-600">📅</Text>
+                    </View>
+                    <Text className="text-slate-800 font-bold flex-1">Manage Events</Text>
+                    <Text className="text-purple-600 text-xl font-bold">→</Text>
+                  </TouchableOpacity>
+                </Link>
               </View>
             </View>
           )}

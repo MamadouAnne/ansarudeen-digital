@@ -84,6 +84,7 @@ export function AuthNavigator() {
       <Stack.Screen name="events/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="admin/projects" options={{ headerShown: false }} />
       <Stack.Screen name="admin/news" options={{ headerShown: false }} />
+      <Stack.Screen name="admin/events" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>
   );

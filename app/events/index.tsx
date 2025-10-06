@@ -10,7 +10,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
@@ -58,6 +58,13 @@ export default function EventsScreen() {
     fetchEvents();
     fetchCategories();
   }, []);
+
+  // Refresh events when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEvents();
+    }, [])
+  );
 
   const fetchCategories = async () => {
     try {

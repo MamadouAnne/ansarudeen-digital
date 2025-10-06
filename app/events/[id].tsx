@@ -165,13 +165,37 @@ export default function EventDetailScreen() {
             text: 'Register',
             onPress: async () => {
               try {
-                const { error } = await supabase
+                // First check if a registration already exists
+                const { data: existingReg } = await supabase
                   .from('event_registrations')
-                  .insert({
-                    event_id: id,
-                    user_id: user.supabaseUser.id,
-                    status: 'registered',
-                  });
+                  .select('id, status')
+                  .eq('event_id', id)
+                  .eq('user_id', user.supabaseUser.id)
+                  .single();
+
+                let error;
+
+                if (existingReg) {
+                  // Update existing registration
+                  const result = await supabase
+                    .from('event_registrations')
+                    .update({
+                      status: 'registered',
+                      cancelled_at: null
+                    })
+                    .eq('id', existingReg.id);
+                  error = result.error;
+                } else {
+                  // Insert new registration
+                  const result = await supabase
+                    .from('event_registrations')
+                    .insert({
+                      event_id: id,
+                      user_id: user.supabaseUser.id,
+                      status: 'registered',
+                    });
+                  error = result.error;
+                }
 
                 if (error) throw error;
 
