@@ -386,7 +386,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Horizontal Quick Access Bar */}
-        <View className="mb-6">
+        <View className="mb-6 mt-4">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
