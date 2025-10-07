@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter, useFocusEffect } from 'expo-router';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Link, useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator, Image } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import MedinaBayeProjectCard from '@/components/MedinaBayeProjectCard';
@@ -32,7 +32,6 @@ interface Event {
 export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [activeSlide, setActiveSlide] = useState(0);
   const carouselRef = useRef<ScrollView>(null);
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
@@ -61,21 +60,10 @@ export default function HomeScreen() {
     }).format(amount);
   };
 
-  const handleScroll = (event: any) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / width);
-    setActiveSlide(index);
-  };
 
   useEffect(() => {
     fetchFeaturedContent();
   }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchFeaturedContent();
-    }, [])
-  );
 
   const fetchFeaturedContent = async () => {
     try {
@@ -108,20 +96,20 @@ export default function HomeScreen() {
     }
   };
 
-  // Auto-scroll carousel
-  useEffect(() => {
-    const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 founder + projects + events
-    if (totalSlides <= 1) return; // Don't auto-scroll if only founder slide
+  // Auto-scroll carousel - Disabled to preserve user's selected slide
+  // useEffect(() => {
+  //   const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 founder + projects + events
+  //   if (totalSlides <= 1) return; // Don't auto-scroll if only founder slide
 
-    const interval = setInterval(() => {
-      setActiveSlide((prev) => {
-        const next = (prev + 1) % totalSlides;
-        carouselRef.current?.scrollTo({ x: next * width, animated: true });
-        return next;
-      });
-    }, 5000); // 5 seconds per slide
-    return () => clearInterval(interval);
-  }, [featuredProjects.length, featuredEvents.length]);
+  //   const interval = setInterval(() => {
+  //     setActiveSlide((prev) => {
+  //       const next = (prev + 1) % totalSlides;
+  //       carouselRef.current?.scrollTo({ x: next * width, animated: true });
+  //       return next;
+  //     });
+  //   }, 5000); // 5 seconds per slide
+  //   return () => clearInterval(interval);
+  // }, [featuredProjects.length, featuredEvents.length]);
 
   const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 54 : 64;
 
@@ -146,8 +134,7 @@ export default function HomeScreen() {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                onScroll={handleScroll}
-                scrollEventThrottle={16}
+                scrollEnabled={false}
                 className="h-64"
               >
               {/* Slide 1: Founder */}
