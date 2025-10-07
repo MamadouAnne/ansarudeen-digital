@@ -18,7 +18,7 @@ export default function MedinaBayeProjectScreen() {
   const [activeTab, setActiveTab] = useState<'overview' | 'components' | 'benefits' | 'strategy'>('overview');
   const project = MEDINA_BAYE_PROJECT;
 
-  const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 8 : 48;
+  const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) - 16 : 36;
 
   return (
     <View style={styles.container}>
@@ -26,15 +26,19 @@ export default function MedinaBayeProjectScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
-        <ImageBackground
-          source={{ uri: project.coverImage }}
-          style={styles.hero}
-          imageStyle={styles.heroImage}
-        >
+        <View style={styles.hero}>
           <LinearGradient
-            colors={['rgba(5, 150, 105, 0.5)', 'rgba(4, 120, 87, 0.85)', 'rgba(6, 95, 70, 0.95)']}
+            colors={['#065f46', '#047857', '#059669']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={[styles.heroGradient, { paddingTop }]}
           >
+            {/* Decorative Islamic pattern */}
+            <View style={styles.decorativePattern}>
+              <View style={[styles.circle, { top: 16, right: 16, width: 112, height: 112 }]} />
+              <View style={[styles.circle, { top: 48, right: 48, width: 80, height: 80 }]} />
+              <View style={[styles.circle, { bottom: 16, left: 16, width: 96, height: 96 }]} />
+            </View>
             {/* Back Button */}
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -42,11 +46,6 @@ export default function MedinaBayeProjectScreen() {
 
             {/* Title Section */}
             <View style={styles.heroContent}>
-              <View style={styles.badge}>
-                <Ionicons name="star" size={16} color="#FFD700" />
-                <Text style={styles.badgeText}>Projet National</Text>
-              </View>
-
               <Text style={styles.heroTitle}>{project.title}</Text>
               <Text style={styles.heroSubtitle}>{project.subtitle}</Text>
 
@@ -67,7 +66,7 @@ export default function MedinaBayeProjectScreen() {
               </View>
             </View>
           </LinearGradient>
-        </ImageBackground>
+        </View>
 
         {/* Tab Navigation */}
         <ScrollView
@@ -421,6 +420,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
   },
+  decorativePattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.1,
+  },
+  circle: {
+    position: 'absolute',
+    borderWidth: 4,
+    borderColor: '#fff',
+    borderRadius: 9999,
+  },
   backButton: {
     width: 44,
     height: 44,
@@ -434,7 +447,8 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     padding: 20,
-    paddingBottom: 32,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
   badge: {
     flexDirection: 'row',
