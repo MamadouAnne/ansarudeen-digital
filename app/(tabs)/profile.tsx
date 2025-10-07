@@ -83,7 +83,7 @@ export default function ProfileScreen() {
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
-        <View className="h-64">
+        <View style={{ height: Platform.OS === 'android' ? 320 : 300 }}>
           <LinearGradient
             colors={['#059669', '#047857', '#065f46']}
             start={{ x: 0, y: 0 }}
@@ -98,16 +98,16 @@ export default function ProfileScreen() {
             <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
           </View>
 
-          <View className="items-center relative z-10 mt-4">
-            <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-3 border-2 border-white/40">
-              <Text className="text-emerald-600 text-2xl font-extrabold">
+          <View className="items-center relative z-10 mt-8">
+            <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-4 border-2 border-white/40">
+              <Text className="text-emerald-600 text-3xl font-extrabold">
                 {(profile.first_name?.[0] || '').toUpperCase()}{(profile.last_name?.[0] || '').toUpperCase()}
               </Text>
             </View>
-            <Text className="text-white text-3xl font-bold mb-1">
+            <Text className="text-white text-3xl font-bold mb-2">
               {profile.first_name || ''} {profile.last_name || ''}
             </Text>
-            <Text className="text-emerald-100 text-sm font-medium mb-2">
+            <Text className="text-emerald-100 text-sm font-medium mb-3">
               السَّلَامُ عَلَيْكُمْ • Peace be upon you
             </Text>
             <Text className="text-white text-base font-medium">
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
           </LinearGradient>
         </View>
 
-        <View className="px-5 -mt-4">
+        <View className="px-5 -mt-8">
           {/* Profile Information with Islamic Design */}
           <View className="bg-white rounded-3xl shadow-lg border-2 border-emerald-100 p-6 mb-5">
             <View className="flex-row justify-between items-center mb-5">
