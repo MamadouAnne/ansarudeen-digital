@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter, useFocusEffect } from 'expo-router';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator, Image } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import MedinaBayeProjectCard from '@/components/MedinaBayeProjectCard';
 
@@ -110,8 +110,8 @@ export default function HomeScreen() {
 
   // Auto-scroll carousel
   useEffect(() => {
-    const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 welcome + projects + events
-    if (totalSlides <= 1) return; // Don't auto-scroll if only welcome slide
+    const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 founder + projects + events
+    if (totalSlides <= 1) return; // Don't auto-scroll if only founder slide
 
     const interval = setInterval(() => {
       setActiveSlide((prev) => {
@@ -123,7 +123,7 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, [featuredProjects.length, featuredEvents.length]);
 
-  const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44;
+  const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 54 : 64;
 
   return (
     <View className="flex-1 bg-slate-50">
@@ -134,7 +134,7 @@ export default function HomeScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         {/* Header Carousel */}
-        <View className="h-64">
+        <View style={{ height: Platform.OS === 'android' ? 280 : 256 }}>
           {loading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#059669" />
@@ -150,31 +150,70 @@ export default function HomeScreen() {
                 scrollEventThrottle={16}
                 className="h-64"
               >
-              {/* Slide 1: Welcome Header */}
-              <View style={{ width }} className="h-64">
-                <View className="h-64 overflow-hidden">
+              {/* Slide 1: Founder */}
+              <View style={{ width, height: Platform.OS === 'android' ? 280 : 256 }}>
+                <View style={{ height: Platform.OS === 'android' ? 280 : 256 }} className="overflow-hidden">
                   <LinearGradient
-                    colors={['#059669', '#047857', '#065f46']}
+                    colors={['#065f46', '#047857', '#059669']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    className="h-64"
+                    style={{ height: Platform.OS === 'android' ? 280 : 256 }}
                   >
-                    <View className="items-center justify-center h-64 relative z-10 pb-8" style={{ paddingTop }}>
-                      {/* Crescent and Star Symbol */}
-                      <View className="w-14 h-14 bg-white/20 rounded-full items-center justify-center mb-2 border-2 border-white/40">
-                        <Text className="text-2xl">☪️</Text>
+                    {/* Decorative Islamic pattern overlay */}
+                    <View className="absolute inset-0 opacity-10">
+                      <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
+                      <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
+                      <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
+                    </View>
+
+                    <View className="items-center justify-center relative z-10 px-6" style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop: paddingTop - 10 }}>
+                      <View className="items-center">
+                        {/* Decorative top line */}
+                        <View className="flex-row items-center mb-3">
+                          <View className="w-12 h-0.5 bg-white/50"></View>
+                          <View className="mx-2 w-1.5 h-1.5 bg-white/70 rounded-full"></View>
+                          <View className="w-12 h-0.5 bg-white/50"></View>
+                        </View>
+
+                        {/* Founder Image with glow effect */}
+                        <View className="mb-1.5">
+                          <View className="w-32 h-32 rounded-full bg-gradient-to-br from-white to-emerald-50 p-2 shadow-2xl">
+                            <View className="w-full h-full rounded-full bg-white p-1">
+                              <View className="w-full h-full rounded-full overflow-hidden border-2 border-emerald-200">
+                                <Image
+                                  source={require('@/assets/images/founder.webp')}
+                                  className="w-full h-full"
+                                  resizeMode="cover"
+                                />
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+
+                        {/* App Name with letter spacing */}
+                        <Text className="text-white text-xl font-extrabold tracking-wide mb-0.5" style={{ fontFamily: 'serif', letterSpacing: 2 }}>
+                          ANSARUDEEN
+                        </Text>
+                        <Text className="text-emerald-50 text-xs font-bold tracking-widest mb-1" style={{ letterSpacing: 3 }}>
+                          INTERNATIONAL
+                        </Text>
+
+                        {/* Arabic text with decorative borders */}
+                        <View className="flex-row items-center">
+                          <View className="w-6 h-px bg-white/30"></View>
+                          <Text className="text-emerald-100 text-sm font-semibold mx-2">
+                            أنصار الدين
+                          </Text>
+                          <View className="w-6 h-px bg-white/30"></View>
+                        </View>
+
+                        {/* Decorative bottom line */}
+                        <View className="flex-row items-center mt-3">
+                          <View className="w-8 h-0.5 bg-white/50"></View>
+                          <View className="mx-2 w-1.5 h-1.5 bg-white/70 rounded-full"></View>
+                          <View className="w-8 h-0.5 bg-white/50"></View>
+                        </View>
                       </View>
-                      <Text className="text-white text-2xl font-bold tracking-wide mb-1" style={{ fontFamily: 'serif' }}>
-                        Ansarudeen International
-                      </Text>
-                      <Text className="text-emerald-100 text-xs font-medium mb-1">
-                        أنصار الدين • Helpers of the Faith
-                      </Text>
-                      <Text className="text-white text-sm font-medium">
-                        {isAuthenticated && user?.profile?.first_name
-                          ? `As-salamu alaykum, ${user.profile.first_name}!`
-                          : 'Building a stronger Muslim community'}
-                      </Text>
                     </View>
                   </LinearGradient>
                 </View>
@@ -369,18 +408,6 @@ export default function HomeScreen() {
               })}
 
               </ScrollView>
-
-              {/* Pagination Dots */}
-              <View className="absolute bottom-6 left-0 right-0 flex-row justify-center">
-                {Array.from({ length: 1 + featuredProjects.length + featuredEvents.length }).map((_, index) => (
-                  <View
-                    key={index}
-                    className={`h-2 rounded-full mx-1 ${
-                      index === activeSlide ? 'bg-white w-6' : 'bg-white/40 w-2'
-                    }`}
-                  />
-                ))}
-              </View>
             </>
           )}
         </View>
