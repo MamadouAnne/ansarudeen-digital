@@ -20,7 +20,9 @@ export default function MedinaBayeProjectCard() {
           imageStyle={styles.image}
         >
           <LinearGradient
-            colors={['rgba(5, 150, 105, 0.5)', 'rgba(4, 120, 87, 0.85)', 'rgba(6, 95, 70, 0.95)']}
+            colors={['rgba(6, 95, 70, 0.85)', 'rgba(4, 120, 87, 0.9)', 'rgba(5, 150, 105, 0.95)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.gradient}
           >
             {/* Content */}
