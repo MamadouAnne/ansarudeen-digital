@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,8 +9,6 @@ const { width } = Dimensions.get('window');
 export default function MedinaBayeProjectCard() {
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Projet Phare</Text>
-
       <TouchableOpacity
         style={styles.card}
         onPress={() => router.push('/medina-baye-project')}
@@ -25,14 +23,13 @@ export default function MedinaBayeProjectCard() {
             colors={['rgba(5, 150, 105, 0.5)', 'rgba(4, 120, 87, 0.85)', 'rgba(6, 95, 70, 0.95)']}
             style={styles.gradient}
           >
-            {/* Badge */}
-            <View style={styles.badge}>
-              <Ionicons name="star" size={14} color="#FFD700" />
-              <Text style={styles.badgeText}>Projet Stratégique</Text>
-            </View>
-
             {/* Content */}
             <View style={styles.content}>
+              {/* Badge */}
+              <View style={styles.badge}>
+                <Ionicons name="star" size={14} color="#FFD700" />
+                <Text style={styles.badgeText}>Projet Stratégique</Text>
+              </View>
               <View style={styles.titleContainer}>
                 <Text style={styles.title}>MEDINA BAYE CITY</Text>
                 <View style={styles.titleDivider} />
@@ -84,17 +81,12 @@ export default function MedinaBayeProjectCard() {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 0,
+    marginTop: -16,
     paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   card: {
-    height: 480,
+    height: 420,
     borderRadius: 24,
     overflow: 'hidden',
   },
@@ -107,6 +99,7 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
     padding: 20,
+    paddingBottom: Platform.OS === 'android' ? 12 : 16,
     justifyContent: 'space-between',
   },
   badge: {
@@ -125,13 +118,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   content: {
-    gap: 16,
+    gap: Platform.OS === 'android' ? 12 : 16,
   },
   titleContainer: {
     gap: 8,
   },
   title: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 2,
@@ -198,7 +191,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     gap: 8,
-    marginTop: 8,
+    marginTop: Platform.OS === 'android' ? 4 : 8,
   },
   ctaText: {
     color: '#fff',

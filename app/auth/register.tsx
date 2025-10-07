@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StatusBar, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StatusBar, Platform, Image, KeyboardAvoidingView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,9 +66,17 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <KeyboardAvoidingView
+      className="flex-1 bg-slate-50"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Islamic-themed Header */}
         <LinearGradient
           colors={['#059669', '#047857', '#065f46']}
@@ -85,9 +93,15 @@ export default function RegisterScreen() {
           </View>
 
           <View className="relative z-10 mt-8 items-center">
-            {/* Logo */}
-            <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-4 border-4 border-emerald-400 shadow-lg">
-              <Text className="text-emerald-600 text-3xl font-extrabold">☪️</Text>
+            {/* Founder Image */}
+            <View className="w-24 h-24 rounded-full bg-white p-1 mb-4 shadow-2xl">
+              <View className="w-full h-full rounded-full overflow-hidden border-3 border-emerald-200">
+                <Image
+                  source={require('@/assets/images/founder.webp')}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              </View>
             </View>
             <Text className="text-white text-3xl font-bold mb-1">Join Our Community</Text>
             <Text className="text-emerald-100 text-sm font-medium">
@@ -263,8 +277,7 @@ export default function RegisterScreen() {
           </View>
         </View>
 
-        <View className="h-8"></View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
