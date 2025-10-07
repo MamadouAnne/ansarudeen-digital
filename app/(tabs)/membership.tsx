@@ -39,21 +39,11 @@ export default function MembershipScreen() {
             <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
           </View>
 
-          <View className="items-center relative z-10 mt-4">
-            {/* Founder Image */}
-            <View className="w-20 h-20 rounded-full bg-white p-1 mb-3 shadow-2xl">
-              <View className="w-full h-full rounded-full overflow-hidden border-3 border-emerald-200">
-                <Image
-                  source={require('@/assets/images/founder.webp')}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-              </View>
-            </View>
-            <Text className="text-white text-3xl font-bold mb-1">
+          <View className="items-center justify-center relative z-10 flex-1">
+            <Text className="text-white text-3xl font-bold mb-2">
               Digital Membership
             </Text>
-            <Text className="text-emerald-100 text-sm font-medium mb-2">
+            <Text className="text-emerald-100 text-sm font-medium mb-3">
               بِطَاقَة الْعُضْوِيَّة • Member Card
             </Text>
             <Text className="text-white text-base font-medium">
@@ -87,14 +77,20 @@ export default function MembershipScreen() {
             </View>
 
             <View className="p-7 relative z-10">
-              {/* Card Header with Islamic Symbol */}
+              {/* Card Header with Founder Image */}
               <View className="flex-row justify-between items-start mb-8">
                 <View>
                   <View className="flex-row items-center mb-1">
-                    <Text className="text-white text-xl font-bold mr-2">☪️</Text>
+                    <View className="w-8 h-8 rounded-full overflow-hidden mr-2" style={{ marginLeft: -4, marginTop: 2 }}>
+                      <Image
+                        source={require('@/assets/images/founder.webp')}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    </View>
                     <Text className="text-white text-xl font-extrabold">ANSARUDEEN</Text>
                   </View>
-                  <Text className="text-emerald-100 text-sm font-semibold ml-7">أنصار الدين</Text>
+                  <Text className="text-emerald-100 text-sm font-semibold ml-9">أنصار الدين</Text>
                 </View>
                 <View className="bg-amber-500 rounded-2xl px-4 py-2 border-2 border-amber-400">
                   <Text className="text-white text-xs font-extrabold">MEMBER</Text>
@@ -112,23 +108,11 @@ export default function MembershipScreen() {
                 </View>
               </View>
 
-              {/* Card Details Row with Founder Image */}
-              <View className="flex-row justify-between items-end" style={{ alignItems: 'flex-end' }}>
+              {/* Card Details Row */}
+              <View className="flex-row justify-between items-end">
                 <View>
                   <Text className="text-emerald-200 text-xs uppercase tracking-wider mb-2 font-bold">Member Since</Text>
                   <Text className="text-white text-base font-extrabold">{profile.member_since || 'N/A'}</Text>
-                </View>
-                <View className="items-center" style={{ marginBottom: -4 }}>
-                  {/* Founder Image */}
-                  <View className="w-12 h-12 rounded-full bg-white p-0.5 shadow-lg">
-                    <View className="w-full h-full rounded-full overflow-hidden border-2 border-emerald-200">
-                      <Image
-                        source={require('@/assets/images/founder.webp')}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                      />
-                    </View>
-                  </View>
                 </View>
                 <View className="items-end">
                   <Text className="text-emerald-200 text-xs uppercase tracking-wider mb-2 font-bold">Status</Text>

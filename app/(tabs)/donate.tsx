@@ -63,21 +63,11 @@ export default function DonateScreen() {
             <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
           </View>
 
-          <View className="items-center relative z-10 mt-4">
-            {/* Founder Image */}
-            <View className="w-20 h-20 rounded-full bg-white p-1 mb-3 shadow-2xl">
-              <View className="w-full h-full rounded-full overflow-hidden border-3 border-emerald-200">
-                <Image
-                  source={require('@/assets/images/founder.webp')}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-              </View>
-            </View>
-            <Text className="text-white text-3xl font-bold mb-1 text-center">
+          <View className="items-center justify-center relative z-10 flex-1">
+            <Text className="text-white text-3xl font-bold mb-2 text-center">
               Give Sadaqah
             </Text>
-            <Text className="text-emerald-100 text-sm font-medium mb-2">
+            <Text className="text-emerald-100 text-sm font-medium mb-3">
               صَدَقَة • Charity
             </Text>
             <Text className="text-white text-base font-medium text-center">
