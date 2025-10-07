@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 
@@ -47,7 +47,7 @@ export default function DonationTrackerScreen() {
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Islamic-themed Header */}
-        <View className="h-64">
+        <View className="h-56">
           <LinearGradient
             colors={['#059669', '#047857', '#065f46']}
             start={{ x: 0, y: 0 }}
@@ -74,11 +74,18 @@ export default function DonationTrackerScreen() {
             </Link>
           </View>
 
-          <View className="relative z-10 mt-8">
+          <View className="relative z-10 mt-4">
             {/* Header Content */}
             <View className="items-center">
-              <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
-                <Text className="text-3xl">📊</Text>
+              {/* Founder Image */}
+              <View className="w-20 h-20 rounded-full bg-white p-1 mb-2 shadow-2xl">
+                <View className="w-full h-full rounded-full overflow-hidden border-3 border-emerald-200">
+                  <Image
+                    source={require('@/assets/images/founder.webp')}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                </View>
               </View>
               <Text className="text-white text-3xl font-bold mb-1">
                 Donation Tracker

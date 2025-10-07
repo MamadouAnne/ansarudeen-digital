@@ -668,8 +668,15 @@ export default function HomeScreen() {
             </View>
 
             <View className="relative z-10">
-              <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-4 border-2 border-white/40">
-                <Text className="text-4xl">🤝</Text>
+              {/* Founder Image */}
+              <View className="w-20 h-20 rounded-full bg-white p-1 mb-4 shadow-2xl">
+                <View className="w-full h-full rounded-full overflow-hidden border-2 border-emerald-200">
+                  <Image
+                    source={require('@/assets/images/founder.webp')}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                </View>
               </View>
               <Text className="text-white font-extrabold text-3xl mb-2 tracking-tight text-center">
                 Spread the Word

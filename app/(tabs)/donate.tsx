@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, StatusBar, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, StatusBar, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function DonateScreen() {
@@ -64,8 +64,15 @@ export default function DonateScreen() {
           </View>
 
           <View className="items-center relative z-10 mt-4">
-            <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-3 border-2 border-white/40">
-              <Text className="text-3xl">💝</Text>
+            {/* Founder Image */}
+            <View className="w-20 h-20 rounded-full bg-white p-1 mb-3 shadow-2xl">
+              <View className="w-full h-full rounded-full overflow-hidden border-3 border-emerald-200">
+                <Image
+                  source={require('@/assets/images/founder.webp')}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              </View>
             </View>
             <Text className="text-white text-3xl font-bold mb-1 text-center">
               Give Sadaqah
