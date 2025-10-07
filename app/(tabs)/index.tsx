@@ -166,6 +166,18 @@ export default function HomeScreen() {
                       <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
                     </View>
 
+                    {/* Galactic symbols */}
+                    <View className="absolute inset-0 opacity-20">
+                      <Text className="absolute top-12 left-8 text-white text-2xl">✨</Text>
+                      <Text className="absolute top-24 right-12 text-white text-xl">⭐</Text>
+                      <Text className="absolute top-32 left-16 text-white text-base">✦</Text>
+                      <Text className="absolute top-40 right-20 text-white text-sm">★</Text>
+                      <Text className="absolute bottom-20 left-12 text-white text-lg">✧</Text>
+                      <Text className="absolute bottom-28 right-16 text-white text-base">◆</Text>
+                      <Text className="absolute top-20 right-24 text-white text-xs">✦</Text>
+                      <Text className="absolute bottom-32 left-20 text-white text-sm">⋆</Text>
+                    </View>
+
                     <View className="items-center justify-center relative z-10 px-6" style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop: paddingTop - 10 }}>
                       <View className="items-center">
                         {/* Decorative top line */}
