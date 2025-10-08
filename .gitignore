@@ -46,7 +46,10 @@ app-example
 /android
 
 # Database and scripts (may contain sensitive data)
+# Allow SQL in supabase/migrations and database/scripts
 *.sql
+!supabase/migrations/*.sql
+!database/scripts/*.sql
 setup-database.js
 
 # IDE and editor files
