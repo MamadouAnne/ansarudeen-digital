@@ -71,22 +71,28 @@ export function AuthNavigator() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="auth/register" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/signin" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="donation-tracker" options={{ headerShown: false }} />
-      <Stack.Screen name="medina-baye-project" options={{ headerShown: false }} />
-      <Stack.Screen name="projects/index" options={{ headerShown: false }} />
-      <Stack.Screen name="projects/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="news/index" options={{ headerShown: false }} />
-      <Stack.Screen name="news/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="events/index" options={{ headerShown: false }} />
-      <Stack.Screen name="events/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="admin/projects" options={{ headerShown: false }} />
-      <Stack.Screen name="admin/news" options={{ headerShown: false }} />
-      <Stack.Screen name="admin/events" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'fade',
+        contentStyle: { backgroundColor: '#059669' }
+      }}
+    >
+      <Stack.Screen name="auth/register" />
+      <Stack.Screen name="auth/signin" />
+      <Stack.Screen name="(tabs)" options={{ contentStyle: { backgroundColor: 'transparent' } }} />
+      <Stack.Screen name="donation-tracker" />
+      <Stack.Screen name="medina-baye-project" />
+      <Stack.Screen name="projects/index" />
+      <Stack.Screen name="projects/[id]" />
+      <Stack.Screen name="news/index" />
+      <Stack.Screen name="news/[id]" />
+      <Stack.Screen name="events/index" />
+      <Stack.Screen name="events/[id]" />
+      <Stack.Screen name="admin/projects" />
+      <Stack.Screen name="admin/news" />
+      <Stack.Screen name="admin/events" />
+      <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: true, title: 'Modal' }} />
     </Stack>
   );
 }
