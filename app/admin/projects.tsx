@@ -324,12 +324,24 @@ export default function AdminProjectsScreen() {
 
   const handleToggleFeatured = async (id: number, currentStatus: boolean) => {
     try {
+      // Find the project to log its details
+      const project = projects.find(p => p.id === id);
+      console.log('ADMIN: Toggling featured for project:', {
+        id,
+        title: project?.title,
+        status: project?.status,
+        currentFeatured: currentStatus,
+        newFeatured: !currentStatus
+      });
+
       const { error } = await supabase
         .from('projects')
         .update({ featured: !currentStatus })
         .eq('id', id);
 
       if (error) throw error;
+
+      console.log('ADMIN: Featured toggle successful');
       Alert.alert('Success', `${!currentStatus ? 'Featured' : 'Unfeatured'} successfully`);
       loadProjects();
     } catch (error) {

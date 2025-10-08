@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { Link, useRouter, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator, Image } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import MedinaBayeProjectCard from '@/components/MedinaBayeProjectCard';
@@ -36,6 +36,7 @@ export default function HomeScreen() {
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   const quickStats = {
     totalMembers: 1247,
@@ -61,31 +62,50 @@ export default function HomeScreen() {
   };
 
 
+  // Fetch featured content on mount
   useEffect(() => {
     fetchFeaturedContent();
   }, []);
+
+  // Refresh featured content when screen comes into focus (e.g., after returning from admin)
+  useFocusEffect(
+    useCallback(() => {
+      fetchFeaturedContent();
+    }, [])
+  );
 
   const fetchFeaturedContent = async () => {
     try {
       setLoading(true);
 
-      // Fetch featured projects (active projects with featured = true, limit 3)
-      const { data: projects } = await supabase
+      // Fetch featured projects regardless of status (planning, ongoing, or completed)
+      const { data: projects, error: projectsError } = await supabase
         .from('projects')
-        .select('id, title, title_arabic, raised_amount, target_amount, status')
-        .eq('status', 'ongoing')
+        .select('id, title, title_arabic, raised_amount, target_amount, status, featured')
         .eq('featured', true)
         .order('created_at', { ascending: false })
         .limit(3);
 
+      if (projectsError) {
+        console.error('Error fetching featured projects:', projectsError);
+      } else {
+        console.log('Featured projects found:', projects?.length || 0, projects);
+      }
+
       // Fetch featured events (upcoming events with featured = true, limit 3)
-      const { data: events } = await supabase
+      const { data: events, error: eventsError } = await supabase
         .from('events')
-        .select('id, title, title_arabic, date, time, location, attendees, capacity, category')
+        .select('id, title, title_arabic, date, time, location, attendees, capacity, category, featured')
         .eq('status', 'upcoming')
         .eq('featured', true)
         .order('date', { ascending: true })
         .limit(3);
+
+      if (eventsError) {
+        console.error('Error fetching featured events:', eventsError);
+      } else {
+        console.log('Featured UPCOMING events found:', events?.length || 0, events);
+      }
 
       setFeaturedProjects(projects || []);
       setFeaturedEvents(events || []);
@@ -96,20 +116,20 @@ export default function HomeScreen() {
     }
   };
 
-  // Auto-scroll carousel - Disabled to preserve user's selected slide
-  // useEffect(() => {
-  //   const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 founder + projects + events
-  //   if (totalSlides <= 1) return; // Don't auto-scroll if only founder slide
+  // Auto-scroll carousel
+  useEffect(() => {
+    const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 founder + projects + events
+    if (totalSlides <= 1) return; // Don't auto-scroll if only founder slide
 
-  //   const interval = setInterval(() => {
-  //     setActiveSlide((prev) => {
-  //       const next = (prev + 1) % totalSlides;
-  //       carouselRef.current?.scrollTo({ x: next * width, animated: true });
-  //       return next;
-  //     });
-  //   }, 5000); // 5 seconds per slide
-  //   return () => clearInterval(interval);
-  // }, [featuredProjects.length, featuredEvents.length]);
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => {
+        const next = (prev + 1) % totalSlides;
+        carouselRef.current?.scrollTo({ x: next * width, animated: true });
+        return next;
+      });
+    }, 5000); // 5 seconds per slide
+    return () => clearInterval(interval);
+  }, [featuredProjects.length, featuredEvents.length, width]);
 
   const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 54 : 64;
 
@@ -145,7 +165,7 @@ export default function HomeScreen() {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                scrollEnabled={false}
+                scrollEnabled={true}
                 className="h-64"
               >
               {/* Slide 1: Founder */}
@@ -230,190 +250,171 @@ export default function HomeScreen() {
               </View>
 
               {/* Featured Projects */}
+              {console.log('RENDERING carousel - featuredProjects.length:', featuredProjects.length)}
               {featuredProjects.map((project) => {
+                console.log('RENDERING project card:', project.id, project.title);
                 const progress = (project.raised_amount / project.target_amount) * 100;
                 return (
-                  <View key={`project-${project.id}`} style={{ width }} className="h-64">
-                    <View className="h-64 overflow-hidden">
-                      <LinearGradient
-                        colors={['#059669', '#047857', '#065f46']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        className="h-64"
-                      >
-                        {/* Decorative Islamic pattern overlay */}
-                        <View className="absolute inset-0 opacity-10">
-                          <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
-                          <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
-                          <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
-                        </View>
-
-                        <View className="h-64 pb-8" style={{ paddingTop }}>
-                          {/* Project Card */}
-                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200">
-                            {/* Project Header */}
-                            <View className="p-2.5 border-b-2 border-slate-100">
-                              <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center flex-1">
-                                  <View className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl items-center justify-center mr-2.5 border-2 border-emerald-300">
-                                    <Text className="text-xl">🕌</Text>
-                                  </View>
-                                  <View className="flex-1">
-                                    <Text className="text-slate-800 text-sm font-extrabold">{project.title}</Text>
-                                    <Text className="text-emerald-600 text-xs font-semibold">{project.title_arabic}</Text>
-                                  </View>
-                                </View>
-                                <View className="px-2.5 py-1 rounded-full border-2 bg-emerald-100 border-emerald-300">
-                                  <Text className="text-xs font-extrabold text-emerald-700">
-                                    Active
-                                  </Text>
-                                </View>
+                  <TouchableOpacity
+                    key={`project-${project.id}`}
+                    style={{ width, height: Platform.OS === 'android' ? 280 : 256 }}
+                    onPress={() => router.push(`/projects/${project.id}`)}
+                  >
+                    <View style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop, paddingHorizontal: 20 }} className="overflow-hidden">
+                      {/* Project Card - Exact match from projects list */}
+                      <View className="rounded-3xl shadow-lg border-2 border-emerald-400 overflow-hidden">
+                        <LinearGradient
+                          colors={['#ffffff', '#f0fdf4', '#dcfce7']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          {/* Project Header */}
+                          <View className="p-3">
+                            <View className="flex-row items-center mb-2">
+                              <View className="w-12 h-12 bg-emerald-100 rounded-2xl items-center justify-center mr-3 shadow-sm">
+                                <Text className="text-2xl">🏗️</Text>
+                              </View>
+                              <View className="flex-1">
+                                <Text className="text-base font-extrabold text-slate-800 mb-0.5" numberOfLines={1}>
+                                  {project.title}
+                                </Text>
+                                <Text className="text-emerald-600 text-xs font-semibold" numberOfLines={1}>
+                                  {project.title_arabic}
+                                </Text>
                               </View>
                             </View>
 
-                            {/* Progress Section */}
-                            <View className="p-2.5">
-                              <View className="mb-2">
-                                <View className="flex-row justify-between mb-1">
-                                  <Text className="text-slate-600 text-xs font-bold">Progress</Text>
-                                  <Text className="text-emerald-600 text-xs font-extrabold">{Math.round(progress)}%</Text>
-                                </View>
-                                <View className="bg-slate-200 rounded-full h-1.5">
-                                  <View
-                                    className="bg-emerald-600 h-1.5 rounded-full"
-                                    style={{ width: `${Math.min(progress, 100)}%` }}
-                                  />
-                                </View>
-                              </View>
+                            {/* Status Badge */}
+                            <View className="bg-amber-100 border-2 border-amber-300 rounded-full px-3 py-1 self-start mb-2">
+                              <Text className="text-amber-700 text-xs font-extrabold">
+                                {project.status === 'planning' ? 'Planning' : project.status === 'ongoing' ? 'In Progress' : 'Completed'}
+                              </Text>
+                            </View>
 
-                              {/* Project Info */}
-                              <View className="flex-row justify-between space-x-2 mb-2.5">
-                                <View className="bg-emerald-50 rounded-lg p-1.5 flex-1 border border-emerald-200">
-                                  <Text className="text-emerald-600 text-xs font-bold">Raised</Text>
-                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.raised_amount)}</Text>
-                                </View>
-                                <View className="bg-amber-50 rounded-lg p-1.5 flex-1 border border-amber-200 ml-2">
-                                  <Text className="text-amber-600 text-xs font-bold">Goal</Text>
-                                  <Text className="text-slate-800 text-sm font-extrabold">{formatCurrency(project.target_amount)}</Text>
-                                </View>
+                            {/* Progress Bar */}
+                            <View className="mb-2">
+                              <View className="flex-row justify-between mb-1">
+                                <Text className="text-slate-600 text-xs font-bold">Progress</Text>
+                                <Text className="text-emerald-600 text-xs font-extrabold">{Math.round(progress)}%</Text>
                               </View>
+                              <View className="bg-slate-200 rounded-full h-2">
+                                <View
+                                  className="bg-emerald-600 h-2 rounded-full"
+                                  style={{ width: `${Math.min(progress, 100)}%` }}
+                                />
+                              </View>
+                            </View>
 
-                              {/* Donate Button */}
-                              <TouchableOpacity onPress={() => router.push(`/projects/${project.id}`)}>
-                                <LinearGradient
-                                  colors={['#059669', '#047857']}
-                                  start={{ x: 0, y: 0 }}
-                                  end={{ x: 1, y: 0 }}
-                                  className="py-2.5 rounded-xl"
-                                >
-                                  <View className="flex-row items-center justify-center">
-                                    <Text className="text-white text-center font-extrabold text-sm mr-1">Donate Now</Text>
-                                    <Text className="text-white text-base">💝</Text>
-                                  </View>
-                                </LinearGradient>
-                              </TouchableOpacity>
+                            {/* Fundraising Info */}
+                            <View className="flex-row justify-between items-center">
+                              <View>
+                                <Text className="text-slate-500 text-xs font-semibold mb-0.5">Raised</Text>
+                                <Text className="text-emerald-600 text-base font-extrabold">
+                                  {formatCurrency(project.raised_amount)}
+                                </Text>
+                              </View>
+                              <View className="items-end">
+                                <Text className="text-slate-500 text-xs font-semibold mb-0.5">Goal</Text>
+                                <Text className="text-slate-700 text-base font-extrabold">
+                                  {formatCurrency(project.target_amount)}
+                                </Text>
+                              </View>
+                              <View className="flex-row items-center bg-emerald-600 px-3 py-2 rounded-full">
+                                <Text className="text-white font-extrabold text-xs mr-1">View</Text>
+                                <Text className="text-white text-sm">→</Text>
+                              </View>
                             </View>
                           </View>
-                        </View>
-                      </LinearGradient>
+                        </LinearGradient>
+                      </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
 
               {/* Featured Events */}
               {featuredEvents.map((event) => {
+                const getCategoryColor = (category: string) => {
+                  switch (category) {
+                    case 'Fundraising': return '#8B5CF6';
+                    case 'Education': return '#3B82F6';
+                    case 'Religious': return '#10B981';
+                    case 'Healthcare': return '#EF4444';
+                    case 'Environment': return '#059669';
+                    default: return '#6B7280';
+                  }
+                };
+
                 return (
-                  <View key={`event-${event.id}`} style={{ width }} className="h-64">
-                    <View className="h-64 overflow-hidden">
-                      <LinearGradient
-                        colors={['#059669', '#047857', '#065f46']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        className="h-64"
-                      >
-                        {/* Decorative Islamic pattern overlay */}
-                        <View className="absolute inset-0 opacity-10">
-                          <View className="absolute top-4 right-4 w-32 h-32 border-4 border-white rounded-full" />
-                          <View className="absolute top-16 right-16 w-24 h-24 border-4 border-white rounded-full" />
-                          <View className="absolute bottom-8 left-8 w-28 h-28 border-4 border-white rounded-full" />
+                  <TouchableOpacity
+                    key={`event-${event.id}`}
+                    style={{ width, height: Platform.OS === 'android' ? 280 : 256 }}
+                    onPress={() => router.push(`/events/${event.id}`)}
+                  >
+                    <View style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop, paddingHorizontal: 20 }} className="overflow-hidden">
+                      {/* Event Card - Exact match from events page */}
+                      <View className="bg-white rounded-3xl overflow-hidden border-2 border-emerald-200/60 shadow-lg">
+                        {/* Category badge - Top Right */}
+                        <View
+                          className="absolute top-2 right-2 z-10 px-3 py-1.5 rounded-full"
+                          style={{ backgroundColor: getCategoryColor(event.category) }}
+                        >
+                          <Text className="text-white font-bold text-xs">
+                            {event.category}
+                          </Text>
                         </View>
 
-                        <View className="h-64 pb-8" style={{ paddingTop }}>
-                          {/* Event Card */}
-                          <View className="bg-amber-50 rounded-b-2xl shadow-lg border-2 border-amber-200">
-                            {/* Event Header */}
-                            <View className="p-2.5 border-b-2 border-slate-100">
-                              <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center flex-1">
-                                  <View className="w-10 h-10 bg-gradient-to-br from-sky-100 to-sky-200 rounded-xl items-center justify-center mr-2.5 border-2 border-sky-300">
-                                    <Text className="text-xl">📅</Text>
-                                  </View>
-                                  <View className="flex-1">
-                                    <Text className="text-slate-800 text-sm font-extrabold">{event.title}</Text>
-                                    <Text className="text-emerald-600 text-xs font-semibold">{event.title_arabic}</Text>
-                                  </View>
-                                </View>
-                                <View className="px-2.5 py-1 rounded-full border-2 bg-sky-100 border-sky-300">
-                                  <Text className="text-xs font-extrabold text-sky-700">
-                                    {event.category}
-                                  </Text>
-                                </View>
+                        {/* Event Title at top */}
+                        <View className="p-3 pb-2">
+                          <Text className="text-slate-900 text-base font-bold mb-1" numberOfLines={1}>
+                            {event.title}
+                          </Text>
+                          <Text className="text-emerald-600 text-xs font-semibold" numberOfLines={1}>
+                            {event.title_arabic}
+                          </Text>
+                        </View>
+
+                        {/* Event Details */}
+                        <View className="px-3 pb-3">
+                          {/* Info Cards Row */}
+                          <View className="flex-row mb-2">
+                            {/* Date Card */}
+                            <View className="flex-1 bg-emerald-50 rounded-2xl p-2 mr-1 border border-emerald-200/50">
+                              <View className="flex-row items-center mb-0.5">
+                                <Text className="text-emerald-600 text-xs font-bold">📅 Date</Text>
                               </View>
+                              <Text className="text-slate-800 font-bold text-xs" numberOfLines={1}>
+                                {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </Text>
+                              <Text className="text-slate-500 text-xs" numberOfLines={1}>
+                                {event.time.split(' - ')[0]}
+                              </Text>
                             </View>
 
-                            {/* Event Details */}
-                            <View className="p-2.5">
-                              {/* Date and Time */}
-                              <View className="flex-row items-center mb-1.5">
-                                <View className="w-7 h-7 bg-emerald-100 rounded-lg items-center justify-center mr-2">
-                                  <Text className="text-sm">🕐</Text>
-                                </View>
-                                <View className="flex-1">
-                                  <Text className="text-slate-700 text-xs font-bold">{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {event.time}</Text>
-                                </View>
+                            {/* Location Card */}
+                            <View className="flex-1 bg-purple-50 rounded-2xl p-2 ml-1 border border-purple-200/50">
+                              <View className="flex-row items-center mb-0.5">
+                                <Text className="text-purple-600 text-xs font-bold">📍 Location</Text>
                               </View>
+                              <Text className="text-slate-800 font-bold text-xs" numberOfLines={2}>
+                                {event.location}
+                              </Text>
+                            </View>
+                          </View>
 
-                              {/* Location */}
-                              <View className="flex-row items-center mb-1.5">
-                                <View className="w-7 h-7 bg-amber-100 rounded-lg items-center justify-center mr-2">
-                                  <Text className="text-sm">📍</Text>
-                                </View>
-                                <View className="flex-1">
-                                  <Text className="text-slate-700 text-xs font-bold">{event.location}</Text>
-                                </View>
-                              </View>
-
-                              {/* Attendees */}
-                              <View className="flex-row items-center mb-2.5">
-                                <View className="w-7 h-7 bg-purple-100 rounded-lg items-center justify-center mr-2">
-                                  <Text className="text-sm">👥</Text>
-                                </View>
-                                <View className="flex-1">
-                                  <Text className="text-slate-700 text-xs font-bold">{event.attendees} / {event.capacity}</Text>
-                                </View>
-                              </View>
-
-                              {/* View Event Button */}
-                              <TouchableOpacity onPress={() => router.push(`/events/${event.id}`)}>
-                                <LinearGradient
-                                  colors={['#059669', '#047857']}
-                                  start={{ x: 0, y: 0 }}
-                                  end={{ x: 1, y: 0 }}
-                                  className="py-2.5 rounded-xl"
-                                >
-                                  <View className="flex-row items-center justify-center">
-                                    <Text className="text-white text-center font-extrabold text-sm mr-1">View Event</Text>
-                                    <Text className="text-white text-base">📅</Text>
-                                  </View>
-                                </LinearGradient>
-                              </TouchableOpacity>
+                          {/* Attendees */}
+                          <View className="flex-row items-center bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200">
+                            <Text className="text-emerald-700 text-xs font-bold flex-1">
+                              👥 {event.attendees} attending
+                            </Text>
+                            <View className="bg-emerald-600 px-3 py-1 rounded-full">
+                              <Text className="text-white font-bold text-xs">View →</Text>
                             </View>
                           </View>
                         </View>
-                      </LinearGradient>
+                      </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
 
