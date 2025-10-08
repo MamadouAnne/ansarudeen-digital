@@ -124,9 +124,20 @@ export default function HomeScreen() {
         {/* Header Carousel */}
         <View style={{ height: Platform.OS === 'android' ? 280 : 256 }}>
           {loading ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#059669" />
-            </View>
+            <LinearGradient
+              colors={['#059669', '#047857', '#065f46']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="flex-1 items-center justify-center"
+              style={{ paddingTop }}
+            >
+              <View className="absolute inset-0 opacity-10">
+                <View className="absolute top-4 right-4 w-28 h-28 border-4 border-white rounded-full" />
+                <View className="absolute top-12 right-12 w-20 h-20 border-4 border-white rounded-full" />
+                <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
+              </View>
+              <ActivityIndicator size="large" color="#ffffff" />
+            </LinearGradient>
           ) : (
             <>
               <ScrollView

@@ -13,8 +13,8 @@ export function AuthNavigator() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Add small delay to prevent rapid navigation changes
-    const timer = setTimeout(() => setNavigationStable(true), 500);
+    // Reduce delay to prevent blank screen flash
+    const timer = setTimeout(() => setNavigationStable(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
@@ -64,8 +64,8 @@ export function AuthNavigator() {
 
   if (!rootNavigationState?.key || isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#059669' }}>
+        <ActivityIndicator size="large" color="#ffffff" />
       </View>
     );
   }
