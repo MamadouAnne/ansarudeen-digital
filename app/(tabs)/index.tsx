@@ -15,6 +15,7 @@ interface Project {
   raised_amount: number;
   target_amount: number;
   status: string;
+  image?: string;
 }
 
 interface Event {
@@ -27,6 +28,7 @@ interface Event {
   attendees: number;
   capacity: number;
   category: string;
+  image?: string;
 }
 
 export default function HomeScreen() {
@@ -37,6 +39,7 @@ export default function HomeScreen() {
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isManualScrolling, setIsManualScrolling] = useState(false);
 
   const quickStats = {
     totalMembers: 1247,
@@ -78,24 +81,37 @@ export default function HomeScreen() {
     try {
       setLoading(true);
 
-      // Fetch featured projects regardless of status (planning, ongoing, or completed)
-      const { data: projects, error: projectsError } = await supabase
+      // Fetch featured projects with optional image (left join)
+      const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
-        .select('id, title, title_arabic, raised_amount, target_amount, status, featured')
+        .select(`
+          id, title, title_arabic, raised_amount, target_amount, status, featured,
+          project_media(uri)
+        `)
         .eq('featured', true)
         .order('created_at', { ascending: false })
         .limit(3);
 
       if (projectsError) {
         console.error('Error fetching featured projects:', projectsError);
-      } else {
-        console.log('Featured projects found:', projects?.length || 0, projects);
       }
 
-      // Fetch featured events (upcoming events with featured = true, limit 3)
-      const { data: events, error: eventsError } = await supabase
+      // Transform projects to include first image
+      const projects = (projectsData || []).map((project: any) => ({
+        ...project,
+        image: project.project_media?.[0]?.uri || 'https://picsum.photos/seed/project-default/800/500',
+        project_media: undefined,
+      }));
+
+      console.log('Featured projects found:', projects?.length || 0);
+
+      // Fetch featured events with optional image (left join)
+      const { data: eventsData, error: eventsError } = await supabase
         .from('events')
-        .select('id, title, title_arabic, date, time, location, attendees, capacity, category, featured')
+        .select(`
+          id, title, title_arabic, date, time, location, attendees, capacity, category, featured,
+          event_media(uri)
+        `)
         .eq('status', 'upcoming')
         .eq('featured', true)
         .order('date', { ascending: true })
@@ -103,9 +119,16 @@ export default function HomeScreen() {
 
       if (eventsError) {
         console.error('Error fetching featured events:', eventsError);
-      } else {
-        console.log('Featured UPCOMING events found:', events?.length || 0, events);
       }
+
+      // Transform events to include first image
+      const events = (eventsData || []).map((event: any) => ({
+        ...event,
+        image: event.event_media?.[0]?.uri || 'https://picsum.photos/seed/event-default/800/500',
+        event_media: undefined,
+      }));
+
+      console.log('Featured events found:', events?.length || 0);
 
       setFeaturedProjects(projects || []);
       setFeaturedEvents(events || []);
@@ -119,7 +142,7 @@ export default function HomeScreen() {
   // Auto-scroll carousel
   useEffect(() => {
     const totalSlides = 1 + featuredProjects.length + featuredEvents.length; // 1 founder + projects + events
-    if (totalSlides <= 1) return; // Don't auto-scroll if only founder slide
+    if (totalSlides <= 1 || isManualScrolling) return; // Don't auto-scroll if only founder slide or user is manually scrolling
 
     const interval = setInterval(() => {
       setActiveSlide((prev) => {
@@ -129,16 +152,16 @@ export default function HomeScreen() {
       });
     }, 5000); // 5 seconds per slide
     return () => clearInterval(interval);
-  }, [featuredProjects.length, featuredEvents.length, width]);
+  }, [featuredProjects.length, featuredEvents.length, width, isManualScrolling]);
 
   const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 54 : 64;
 
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <ScrollView 
-        className="flex-1" 
-        showsVerticalScrollIndicator={false} 
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
         {/* Header Carousel */}
@@ -167,6 +190,10 @@ export default function HomeScreen() {
                 showsHorizontalScrollIndicator={false}
                 scrollEnabled={true}
                 className="h-64"
+                onScrollBeginDrag={() => setIsManualScrolling(true)}
+                onScrollEndDrag={() => {
+                  setTimeout(() => setIsManualScrolling(false), 5000); // Resume auto-scroll after 5 seconds
+                }}
               >
               {/* Slide 1: Founder */}
               <View style={{ width, height: Platform.OS === 'android' ? 280 : 256 }}>
@@ -260,74 +287,83 @@ export default function HomeScreen() {
                     style={{ width, height: Platform.OS === 'android' ? 280 : 256 }}
                     onPress={() => router.push(`/projects/${project.id}`)}
                   >
-                    <View style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop, paddingHorizontal: 20 }} className="overflow-hidden">
-                      {/* Project Card - Exact match from projects list */}
-                      <View className="rounded-3xl shadow-lg border-2 border-emerald-400 overflow-hidden">
+                    <LinearGradient
+                      colors={['#065f46', '#047857', '#059669']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop: paddingTop - 10, paddingHorizontal: 20 }}
+                      className="overflow-hidden flex justify-center"
+                    >
+                      {/* Project Card with Image */}
+                      <View className="rounded-3xl shadow-lg border-2 border-emerald-400 overflow-hidden" style={{ height: 185 }}>
                         <LinearGradient
                           colors={['#ffffff', '#f0fdf4', '#dcfce7']}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
                         >
-                          {/* Project Header */}
-                          <View className="p-3">
-                            <View className="flex-row items-center mb-2">
-                              <View className="w-12 h-12 bg-emerald-100 rounded-2xl items-center justify-center mr-3 shadow-sm">
-                                <Text className="text-2xl">🏗️</Text>
-                              </View>
-                              <View className="flex-1">
-                                <Text className="text-base font-extrabold text-slate-800 mb-0.5" numberOfLines={1}>
-                                  {project.title}
-                                </Text>
-                                <Text className="text-emerald-600 text-xs font-semibold" numberOfLines={1}>
-                                  {project.title_arabic}
-                                </Text>
+                          {/* Project Image */}
+                          {project.image && (
+                            <View className="relative">
+                              <Image
+                                source={{ uri: project.image }}
+                                className="w-full h-24"
+                                resizeMode="cover"
+                              />
+                              {/* Gradient overlay for status bar visibility */}
+                              <LinearGradient
+                                colors={['rgba(5, 150, 105, 0.6)', 'transparent']}
+                                className="absolute top-0 left-0 right-0 h-16"
+                              />
+                              {/* Status Badge on Image */}
+                              <View className="absolute top-2 right-2">
+                                <View className="bg-amber-100 border-2 border-amber-300 rounded-full px-2 py-1">
+                                  <Text className="text-amber-700 text-xs font-extrabold">
+                                    {project.status === 'planning' ? 'Planning' : project.status === 'ongoing' ? 'In Progress' : 'Completed'}
+                                  </Text>
+                                </View>
                               </View>
                             </View>
+                          )}
 
-                            {/* Status Badge */}
-                            <View className="bg-amber-100 border-2 border-amber-300 rounded-full px-3 py-1 self-start mb-2">
-                              <Text className="text-amber-700 text-xs font-extrabold">
-                                {project.status === 'planning' ? 'Planning' : project.status === 'ongoing' ? 'In Progress' : 'Completed'}
+                          {/* Project Content */}
+                          <View className="p-2">
+                            {/* Project Title */}
+                            <View className="mb-1">
+                              <Text className="text-sm font-extrabold text-slate-800" numberOfLines={1}>
+                                {project.title}
+                              </Text>
+                              <Text className="text-emerald-600 text-xs font-semibold" numberOfLines={1}>
+                                {project.title_arabic}
                               </Text>
                             </View>
 
-                            {/* Progress Bar */}
-                            <View className="mb-2">
-                              <View className="flex-row justify-between mb-1">
+                            {/* Progress Bar - Compact */}
+                            <View className="mb-1">
+                              <View className="flex-row justify-between mb-0.5">
                                 <Text className="text-slate-600 text-xs font-bold">Progress</Text>
                                 <Text className="text-emerald-600 text-xs font-extrabold">{Math.round(progress)}%</Text>
                               </View>
-                              <View className="bg-slate-200 rounded-full h-2">
+                              <View className="bg-slate-200 rounded-full h-1.5">
                                 <View
-                                  className="bg-emerald-600 h-2 rounded-full"
+                                  className="bg-emerald-600 h-1.5 rounded-full"
                                   style={{ width: `${Math.min(progress, 100)}%` }}
                                 />
                               </View>
                             </View>
 
-                            {/* Fundraising Info */}
-                            <View className="flex-row justify-between items-center">
-                              <View>
-                                <Text className="text-slate-500 text-xs font-semibold mb-0.5">Raised</Text>
-                                <Text className="text-emerald-600 text-base font-extrabold">
-                                  {formatCurrency(project.raised_amount)}
-                                </Text>
-                              </View>
-                              <View className="items-end">
-                                <Text className="text-slate-500 text-xs font-semibold mb-0.5">Goal</Text>
-                                <Text className="text-slate-700 text-base font-extrabold">
-                                  {formatCurrency(project.target_amount)}
-                                </Text>
-                              </View>
-                              <View className="flex-row items-center bg-emerald-600 px-3 py-2 rounded-full">
-                                <Text className="text-white font-extrabold text-xs mr-1">View</Text>
-                                <Text className="text-white text-sm">→</Text>
+                            {/* Fundraising Info - Compact */}
+                            <View className="flex-row items-center bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                              <Text className="text-emerald-700 text-xs font-bold flex-1">
+                                💰 {formatCurrency(project.raised_amount)} / {formatCurrency(project.target_amount)}
+                              </Text>
+                              <View className="bg-emerald-600 px-2 py-1 rounded-full">
+                                <Text className="text-white font-bold text-xs">View →</Text>
                               </View>
                             </View>
                           </View>
                         </LinearGradient>
                       </View>
-                    </View>
+                    </LinearGradient>
                   </TouchableOpacity>
                 );
               })}
@@ -351,69 +387,69 @@ export default function HomeScreen() {
                     style={{ width, height: Platform.OS === 'android' ? 280 : 256 }}
                     onPress={() => router.push(`/events/${event.id}`)}
                   >
-                    <View style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop, paddingHorizontal: 20 }} className="overflow-hidden">
-                      {/* Event Card - Exact match from events page */}
-                      <View className="bg-white rounded-3xl overflow-hidden border-2 border-emerald-200/60 shadow-lg">
-                        {/* Category badge - Top Right */}
-                        <View
-                          className="absolute top-2 right-2 z-10 px-3 py-1.5 rounded-full"
-                          style={{ backgroundColor: getCategoryColor(event.category) }}
-                        >
-                          <Text className="text-white font-bold text-xs">
-                            {event.category}
-                          </Text>
-                        </View>
-
-                        {/* Event Title at top */}
-                        <View className="p-3 pb-2">
-                          <Text className="text-slate-900 text-base font-bold mb-1" numberOfLines={1}>
-                            {event.title}
-                          </Text>
-                          <Text className="text-emerald-600 text-xs font-semibold" numberOfLines={1}>
-                            {event.title_arabic}
-                          </Text>
-                        </View>
-
-                        {/* Event Details */}
-                        <View className="px-3 pb-3">
-                          {/* Info Cards Row */}
-                          <View className="flex-row mb-2">
-                            {/* Date Card */}
-                            <View className="flex-1 bg-emerald-50 rounded-2xl p-2 mr-1 border border-emerald-200/50">
-                              <View className="flex-row items-center mb-0.5">
-                                <Text className="text-emerald-600 text-xs font-bold">📅 Date</Text>
-                              </View>
-                              <Text className="text-slate-800 font-bold text-xs" numberOfLines={1}>
-                                {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </Text>
-                              <Text className="text-slate-500 text-xs" numberOfLines={1}>
-                                {event.time.split(' - ')[0]}
-                              </Text>
-                            </View>
-
-                            {/* Location Card */}
-                            <View className="flex-1 bg-purple-50 rounded-2xl p-2 ml-1 border border-purple-200/50">
-                              <View className="flex-row items-center mb-0.5">
-                                <Text className="text-purple-600 text-xs font-bold">📍 Location</Text>
-                              </View>
-                              <Text className="text-slate-800 font-bold text-xs" numberOfLines={2}>
-                                {event.location}
+                    <LinearGradient
+                      colors={['#065f46', '#047857', '#059669']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={{ height: Platform.OS === 'android' ? 280 : 256, paddingTop: paddingTop - 10, paddingHorizontal: 20 }}
+                      className="overflow-hidden flex justify-center"
+                    >
+                      {/* Event Card with Image */}
+                      <View className="bg-white rounded-3xl overflow-hidden border-2 border-emerald-400 shadow-lg" style={{ height: 185 }}>
+                        {/* Event Image */}
+                        {event.image && (
+                          <View className="relative">
+                            <Image
+                              source={{ uri: event.image }}
+                              className="w-full h-24"
+                              resizeMode="cover"
+                            />
+                            {/* Gradient overlay for status bar visibility */}
+                            <LinearGradient
+                              colors={['rgba(5, 150, 105, 0.6)', 'transparent']}
+                              className="absolute top-0 left-0 right-0 h-16"
+                            />
+                            {/* Category badge on Image */}
+                            <View
+                              className="absolute top-2 right-2 px-2 py-1 rounded-full"
+                              style={{ backgroundColor: getCategoryColor(event.category) }}
+                            >
+                              <Text className="text-white font-bold text-xs">
+                                {event.category}
                               </Text>
                             </View>
                           </View>
+                        )}
+
+                        {/* Event Content */}
+                        <View className="p-2">
+                          {/* Event Title */}
+                          <View className="mb-1">
+                            <Text className="text-slate-900 text-sm font-bold" numberOfLines={1}>
+                              {event.title}
+                            </Text>
+                            <Text className="text-emerald-600 text-xs font-semibold" numberOfLines={1}>
+                              {event.title_arabic}
+                            </Text>
+                          </View>
+
+                          {/* Date and Location - Compact */}
+                          <View className="mb-1">
+                            <Text className="text-emerald-600 text-xs font-bold">📅 {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • 📍 {event.location}</Text>
+                          </View>
 
                           {/* Attendees */}
-                          <View className="flex-row items-center bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200">
+                          <View className="flex-row items-center bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
                             <Text className="text-emerald-700 text-xs font-bold flex-1">
-                              👥 {event.attendees} attending
+                              👥 {event.attendees} / {event.capacity} attending
                             </Text>
-                            <View className="bg-emerald-600 px-3 py-1 rounded-full">
+                            <View className="bg-emerald-600 px-2 py-1 rounded-full">
                               <Text className="text-white font-bold text-xs">View →</Text>
                             </View>
                           </View>
                         </View>
                       </View>
-                    </View>
+                    </LinearGradient>
                   </TouchableOpacity>
                 );
               })}
