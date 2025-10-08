@@ -373,10 +373,6 @@ export default function MedinaBayeProjectScreen() {
             <View style={styles.authorCard}>
               <Text style={styles.authorName}>{project.author.name}</Text>
               <Text style={styles.authorTitle}>{project.author.title}</Text>
-              <TouchableOpacity style={styles.contactButton}>
-                <Ionicons name="mail" size={18} color="#fff" />
-                <Text style={styles.contactButtonText}>{project.author.contact}</Text>
-              </TouchableOpacity>
             </View>
           </View>
 
