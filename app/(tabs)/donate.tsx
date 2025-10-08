@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, StatusBar, Platform, Image } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import IslamicHeader from '@/components/IslamicHeader';
 
 export default function DonateScreen() {
   const [selectedAmount, setSelectedAmount] = useState<string>('');
@@ -47,35 +48,11 @@ export default function DonateScreen() {
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Islamic-themed Header */}
-        <View className="h-64">
-          <LinearGradient
-            colors={['#059669', '#047857', '#065f46']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="px-6 h-full relative overflow-hidden"
-            style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 4 : 44 }}
-          >
-          {/* Decorative Islamic pattern */}
-          <View className="absolute inset-0 opacity-10">
-            <View className="absolute top-4 right-4 w-28 h-28 border-4 border-white rounded-full" />
-            <View className="absolute top-12 right-12 w-20 h-20 border-4 border-white rounded-full" />
-            <View className="absolute bottom-4 left-4 w-24 h-24 border-4 border-white rounded-full" />
-          </View>
-
-          <View className="items-center justify-center relative z-10 flex-1">
-            <Text className="text-white text-3xl font-bold mb-2 text-center">
-              Give Sadaqah
-            </Text>
-            <Text className="text-emerald-100 text-sm font-medium mb-3">
-              صَدَقَة • Charity
-            </Text>
-            <Text className="text-white text-base font-medium text-center">
-              "The believer's shade on the Day of Resurrection will be their charity"
-            </Text>
-          </View>
-          </LinearGradient>
-        </View>
+        <IslamicHeader
+          title="Give Sadaqah"
+          subtitle="صَدَقَة • Charity"
+          description="'The believer's shade on the Day of Resurrection will be their charity' - Hadith (Tirmidhi)"
+        />
 
         <View className="px-5 -mt-4">
           {/* Donation Amount Card */}
