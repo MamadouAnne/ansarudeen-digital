@@ -499,7 +499,10 @@ export default function HomeScreen() {
             </Link>
 
             {/* Resources Card */}
-            <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-amber-100 shadow-sm mr-3 w-28">
+            <TouchableOpacity
+              className="bg-white rounded-2xl p-3 border-2 border-amber-100 shadow-sm mr-3 w-28"
+              onPress={() => router.push('/resources')}
+            >
               <View className="w-10 h-10 bg-amber-100 rounded-xl items-center justify-center mb-1.5">
                 <Text className="text-xl">📚</Text>
               </View>
