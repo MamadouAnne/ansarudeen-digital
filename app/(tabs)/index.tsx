@@ -277,7 +277,6 @@ export default function HomeScreen() {
               </View>
 
               {/* Featured Projects */}
-              {console.log('RENDERING carousel - featuredProjects.length:', featuredProjects.length)}
               {featuredProjects.map((project) => {
                 console.log('RENDERING project card:', project.id, project.title);
                 const progress = (project.raised_amount / project.target_amount) * 100;
