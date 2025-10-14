@@ -28,6 +28,10 @@ export function useMessages() {
             projects:project_id(
               id, title, title_arabic, description, full_description, category, status, progress, target_amount, raised_amount, featured,
               project_media(uri)
+            ),
+            news_articles:news_article_id(
+              id, title, title_arabic, excerpt, content, category, author, date, read_time,
+              news_media(uri)
             )
           `)
           .eq('is_published', true)
@@ -53,6 +57,11 @@ export function useMessages() {
             ...msg.projects,
             image: msg.projects.project_media?.[0]?.uri || 'https://picsum.photos/seed/project-default/800/500',
           } : null,
+          news_article_id: msg.news_article_id,
+          news_article: msg.news_articles ? {
+            ...msg.news_articles,
+            image: msg.news_articles.news_media?.[0]?.uri || 'https://picsum.photos/seed/news-default/800/500',
+          } : null,
         }));
 
         setMessages(messagesData);
@@ -66,6 +75,10 @@ export function useMessages() {
             projects:project_id(
               id, title, title_arabic, description, full_description, category, status, progress, target_amount, raised_amount, featured,
               project_media(uri)
+            ),
+            news_articles:news_article_id(
+              id, title, title_arabic, excerpt, content, category, author, date, read_time,
+              news_media(uri)
             )
           `)
           .eq('is_published', true)
@@ -91,6 +104,11 @@ export function useMessages() {
           project: msg.projects ? {
             ...msg.projects,
             image: msg.projects.project_media?.[0]?.uri || 'https://picsum.photos/seed/project-default/800/500',
+          } : null,
+          news_article_id: msg.news_article_id,
+          news_article: msg.news_articles ? {
+            ...msg.news_articles,
+            image: msg.news_articles.news_media?.[0]?.uri || 'https://picsum.photos/seed/news-default/800/500',
           } : null,
         }));
 

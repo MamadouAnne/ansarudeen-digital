@@ -38,6 +38,15 @@ export default function MessagesScreen() {
       return;
     }
 
+    // If message has a news article, navigate to news details
+    if (message.news_article_id && message.news_article) {
+      if (!message.read) {
+        markAsRead(message.id);
+      }
+      router.push(`/news/${message.news_article_id}`);
+      return;
+    }
+
     // Otherwise, show message details
     setSelectedMessage(message);
     if (!message.read) {
@@ -324,6 +333,75 @@ export default function MessagesScreen() {
                             </View>
                           </View>
                         </LinearGradient>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ) : message.news_article_id && message.news_article ? (
+                // News Card Message
+                <View style={styles.messageRow}>
+                  <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
+                    <IconSymbol
+                      name={getCategoryIcon(message.category)}
+                      size={20}
+                      color="#FFFFFF"
+                    />
+                  </View>
+
+                  <View style={styles.messageBubbleContainer}>
+                    <View style={[styles.newsCardBubble, { backgroundColor: colorScheme === 'dark' ? '#2A2A2A' : '#F0F0F0' }]}>
+                      {/* Time Badge */}
+                      <View style={styles.newsTimeStamp}>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+                          {formatTimestamp(message.timestamp)}
+                        </Text>
+                        {!message.read && (
+                          <View style={[styles.unreadDot, { backgroundColor: Colors[colorScheme ?? 'light'].tint, marginLeft: 6 }]} />
+                        )}
+                      </View>
+
+                      {/* News Card */}
+                      <View style={styles.newsCard}>
+                        {/* News Image */}
+                        {message.news_article.image && (
+                          <View style={styles.newsImageContainer}>
+                            <Image
+                              source={{ uri: message.news_article.image }}
+                              style={styles.newsImage}
+                              resizeMode="cover"
+                            />
+                            <LinearGradient
+                              colors={['rgba(0, 0, 0, 0.4)', 'transparent']}
+                              style={styles.newsImageOverlay}
+                            />
+                            <View style={styles.newsCategoryBadge}>
+                              <Text style={styles.newsCategoryText}>{message.news_article.category}</Text>
+                            </View>
+                          </View>
+                        )}
+
+                        {/* News Content */}
+                        <View style={styles.newsContent}>
+                          <Text style={styles.newsTitle} numberOfLines={2}>
+                            {message.news_article.title}
+                          </Text>
+                          <Text style={styles.newsTitleArabic} numberOfLines={1}>
+                            {message.news_article.title_arabic}
+                          </Text>
+                          <Text style={styles.newsExcerpt} numberOfLines={2}>
+                            {message.news_article.excerpt}
+                          </Text>
+
+                          {/* News Meta */}
+                          <View style={styles.newsMetaContainer}>
+                            <Text style={styles.newsAuthor}>{message.news_article.author}</Text>
+                            <Text style={styles.newsSeparator}>•</Text>
+                            <Text style={styles.newsReadTime}>{message.news_article.read_time}</Text>
+                            <View style={styles.newsReadButton}>
+                              <Text style={styles.newsReadButtonText}>Read →</Text>
+                            </View>
+                          </View>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -814,6 +892,114 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   projectViewButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 10,
+  },
+  // News Card Styles
+  newsCardBubble: {
+    flex: 1,
+    borderRadius: 16,
+    borderTopLeftRadius: 4,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  newsTimeStamp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  newsCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  newsImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 120,
+  },
+  newsImage: {
+    width: '100%',
+    height: 120,
+  },
+  newsImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+  },
+  newsCategoryBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#059669',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  newsCategoryText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  newsContent: {
+    padding: 12,
+  },
+  newsTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1e293b',
+    marginBottom: 2,
+    lineHeight: 20,
+  },
+  newsTitleArabic: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#059669',
+    marginBottom: 6,
+  },
+  newsExcerpt: {
+    fontSize: 13,
+    color: '#64748b',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  newsMetaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  newsAuthor: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  newsSeparator: {
+    fontSize: 11,
+    color: '#cbd5e1',
+  },
+  newsReadTime: {
+    fontSize: 11,
+    color: '#94a3b8',
+    flex: 1,
+  },
+  newsReadButton: {
+    backgroundColor: '#059669',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  newsReadButtonText: {
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 10,

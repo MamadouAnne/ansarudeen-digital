@@ -25,4 +25,17 @@ export interface Message {
     featured: boolean;
     image?: string;
   } | null;
+  news_article_id?: number | null;
+  news_article?: {
+    id: number;
+    title: string;
+    title_arabic: string;
+    excerpt: string;
+    content: string;
+    category: string;
+    author: string;
+    date: string;
+    read_time: string;
+    image?: string;
+  } | null;
 }

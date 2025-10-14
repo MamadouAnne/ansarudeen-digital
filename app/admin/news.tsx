@@ -301,6 +301,49 @@ export default function AdminNewsScreen() {
     );
   };
 
+  const handleShareToMessages = async (article: NewsArticle) => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        Alert.alert('Error', 'You must be logged in to share messages.');
+        return;
+      }
+
+      // Get user's name from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          title: `New Article: ${article.title}`,
+          content: `Check out this news article: ${article.title}`,
+          category: 'announcement',
+          priority: 'high',
+          sender_id: currentUser.id,
+          sender_name: (profile as any)?.full_name || 'Admin',
+          sender_role: 'Administrator',
+          published_at: new Date().toISOString(),
+          is_published: true,
+          news_article_id: article.id,
+        } as any);
+
+      if (error) throw error;
+
+      Alert.alert(
+        'Success!',
+        'Article has been shared to the Messages chat screen.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error sharing to messages:', error);
+      Alert.alert('Error', 'Failed to share article to messages.');
+    }
+  };
+
   const openEditModal = (article: NewsArticle) => {
     setSelectedArticle(article);
     setFormData({
@@ -572,7 +615,7 @@ export default function AdminNewsScreen() {
               {article.author} • {article.date} • {article.read_time}
             </Text>
 
-            <View className="flex-row">
+            <View className="flex-row mb-2">
               <TouchableOpacity
                 onPress={() => openEditModal(article)}
                 className="flex-1 bg-emerald-100 py-2 rounded-lg mr-2"
@@ -586,6 +629,12 @@ export default function AdminNewsScreen() {
                 <Text className="text-red-700 font-bold text-center text-sm">Delete</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              onPress={() => handleShareToMessages(article)}
+              className="bg-blue-600 py-2 rounded-lg"
+            >
+              <Text className="text-white font-bold text-center text-sm">💬 Share to Messages</Text>
+            </TouchableOpacity>
           </View>
         ))}
       </ScrollView>

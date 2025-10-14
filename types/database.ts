@@ -18,6 +18,7 @@ export interface Database {
           published_at: string | null;
           is_published: boolean;
           project_id: number | null;
+          news_article_id: number | null;
         };
         Insert: {
           id?: string;
@@ -33,6 +34,7 @@ export interface Database {
           published_at?: string | null;
           is_published?: boolean;
           project_id?: number | null;
+          news_article_id?: number | null;
         };
         Update: {
           id?: string;
@@ -48,6 +50,7 @@ export interface Database {
           published_at?: string | null;
           is_published?: boolean;
           project_id?: number | null;
+          news_article_id?: number | null;
         };
       };
       message_reads: {
