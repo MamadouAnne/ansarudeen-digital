@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -8,18 +8,14 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useMessages } from '@/hooks/useMessages';
 import { useAdmin } from '@/hooks/useAdmin';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function MessagesScreen() {
   const colorScheme = useColorScheme();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const { messages, loading, error, refetch, markAsRead } = useMessages();
   const { isAdmin } = useAdmin();
   const scrollViewRef = useRef<ScrollView>(null);
-
-  const filteredMessages = filter === 'unread'
-    ? messages.filter(msg => !msg.read)
-    : messages;
 
   const unreadCount = messages.filter(msg => !msg.read).length;
 
@@ -33,11 +29,29 @@ export default function MessagesScreen() {
   }, [messages.length]);
 
   const handleMessagePress = (message: Message) => {
+    // If message has a project, navigate to project details
+    if (message.project_id && message.project) {
+      if (!message.read) {
+        markAsRead(message.id);
+      }
+      router.push(`/projects/${message.project_id}`);
+      return;
+    }
+
+    // Otherwise, show message details
     setSelectedMessage(message);
-    // Mark as read when opened
     if (!message.read) {
       markAsRead(message.id);
     }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -132,20 +146,6 @@ export default function MessagesScreen() {
             </Text>
 
             <View style={styles.detailMeta}>
-              <View style={styles.senderInfo}>
-                <View style={styles.avatarCircle}>
-                  <IconSymbol name="person.fill" size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.senderText}>
-                  <Text style={[styles.senderName, { color: Colors[colorScheme ?? 'light'].text }]}>
-                    {selectedMessage.sender.name}
-                  </Text>
-                  <Text style={[styles.senderRole, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
-                    {selectedMessage.sender.role}
-                  </Text>
-                </View>
-              </View>
-
               <View style={styles.metaTags}>
                 <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(selectedMessage.priority) + '20' }]}>
                   <Text style={[styles.priorityText, { color: getPriorityColor(selectedMessage.priority) }]}>
@@ -199,39 +199,6 @@ export default function MessagesScreen() {
         </View>
       </View>
 
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          onPress={() => setFilter('all')}
-          style={[
-            styles.filterButton,
-            filter === 'all' && styles.filterButtonActive,
-            filter === 'all' && { backgroundColor: Colors[colorScheme ?? 'light'].tint },
-          ]}
-        >
-          <Text style={[
-            styles.filterButtonText,
-            { color: filter === 'all' ? '#FFFFFF' : Colors[colorScheme ?? 'light'].tabIconDefault },
-          ]}>
-            All Messages
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setFilter('unread')}
-          style={[
-            styles.filterButton,
-            filter === 'unread' && styles.filterButtonActive,
-            filter === 'unread' && { backgroundColor: Colors[colorScheme ?? 'light'].tint },
-          ]}
-        >
-          <Text style={[
-            styles.filterButtonText,
-            { color: filter === 'unread' ? '#FFFFFF' : Colors[colorScheme ?? 'light'].tabIconDefault },
-          ]}>
-            Unread ({unreadCount})
-          </Text>
-        </TouchableOpacity>
-      </View>
 
       {loading && messages.length === 0 ? (
         <View style={styles.loadingContainer}>
@@ -264,77 +231,173 @@ export default function MessagesScreen() {
             />
           }
         >
-          {filteredMessages.map((message) => (
+          {messages.map((message) => (
             <TouchableOpacity
               key={message.id}
               onPress={() => handleMessagePress(message)}
               activeOpacity={0.7}
+              style={styles.messageWrapper}
             >
-            <View style={[
-              styles.messageCard,
-              { backgroundColor: colorScheme === 'dark' ? '#1A1A1A' : '#FFFFFF' },
-              !message.read && { borderLeftWidth: 4, borderLeftColor: Colors[colorScheme ?? 'light'].tint },
-            ]}>
-              <View style={styles.messageCardHeader}>
-                <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(message.category) + '20' }]}>
-                  <IconSymbol
-                    name={getCategoryIcon(message.category)}
-                    size={16}
-                    color={getCategoryColor(message.category)}
-                  />
-                  <Text style={[styles.categoryText, { color: getCategoryColor(message.category) }]}>
-                    {message.category}
-                  </Text>
-                </View>
+              {message.project_id && message.project ? (
+                // Project Card Message
+                <View style={styles.messageRow}>
+                  <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
+                    <IconSymbol
+                      name={getCategoryIcon(message.category)}
+                      size={20}
+                      color="#FFFFFF"
+                    />
+                  </View>
 
-                {!message.read && (
-                  <View style={styles.unreadDot} />
-                )}
-              </View>
+                  <View style={styles.messageBubbleContainer}>
+                    <View style={[styles.projectCardBubble, { backgroundColor: colorScheme === 'dark' ? '#2A2A2A' : '#F0F0F0' }]}>
+                      {/* Time Badge */}
+                      <View style={styles.projectTimeStamp}>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+                          {formatTimestamp(message.timestamp)}
+                        </Text>
+                        {!message.read && (
+                          <View style={[styles.unreadDot, { backgroundColor: Colors[colorScheme ?? 'light'].tint, marginLeft: 6 }]} />
+                        )}
+                      </View>
 
-              <Text style={[
-                styles.messageTitle,
-                { color: Colors[colorScheme ?? 'light'].text },
-                !message.read && styles.messageUnread,
-              ]}>
-                {message.title}
-              </Text>
+                      {/* Project Card */}
+                      <View style={styles.projectCard}>
+                        <LinearGradient
+                          colors={['#ffffff', '#f0fdf4', '#dcfce7']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.projectCardGradient}
+                        >
+                          {/* Project Image */}
+                          {message.project.image && (
+                            <View style={styles.projectImageContainer}>
+                              <Image
+                                source={{ uri: message.project.image }}
+                                style={styles.projectImage}
+                                resizeMode="cover"
+                              />
+                              <LinearGradient
+                                colors={['rgba(5, 150, 105, 0.6)', 'transparent']}
+                                style={styles.projectImageOverlay}
+                              />
+                              <View style={styles.projectStatusBadge}>
+                                <Text style={styles.projectStatusText}>
+                                  {message.project.status === 'planning' ? 'Planning' : message.project.status === 'ongoing' ? 'In Progress' : 'Completed'}
+                                </Text>
+                              </View>
+                            </View>
+                          )}
 
-              <Text
-                style={[styles.messagePreview, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}
-                numberOfLines={2}
-              >
-                {message.content}
-              </Text>
+                          {/* Project Content */}
+                          <View style={styles.projectContent}>
+                            <View style={styles.projectTitleContainer}>
+                              <Text style={styles.projectTitle} numberOfLines={1}>
+                                {message.project.title}
+                              </Text>
+                              <Text style={styles.projectTitleArabic} numberOfLines={1}>
+                                {message.project.title_arabic}
+                              </Text>
+                            </View>
 
-              <View style={styles.messageFooter}>
-                <View style={styles.senderBadge}>
-                  <IconSymbol name="person.circle.fill" size={16} color={Colors[colorScheme ?? 'light'].tabIconDefault} />
-                  <Text style={[styles.senderNameSmall, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
-                    {message.sender.name}
-                  </Text>
-                </View>
+                            {/* Progress Bar */}
+                            <View style={styles.projectProgressContainer}>
+                              <View style={styles.projectProgressHeader}>
+                                <Text style={styles.projectProgressLabel}>Progress</Text>
+                                <Text style={styles.projectProgressValue}>{Math.round(message.project.progress)}%</Text>
+                              </View>
+                              <View style={styles.projectProgressBar}>
+                                <View
+                                  style={[styles.projectProgressFill, { width: `${Math.min(message.project.progress, 100)}%` }]}
+                                />
+                              </View>
+                            </View>
 
-                <View style={styles.metaInfo}>
-                  {message.priority === 'high' && (
-                    <View style={styles.priorityIndicator}>
-                      <IconSymbol name="exclamationmark.circle.fill" size={14} color="#FF4757" />
+                            {/* Fundraising Info */}
+                            <View style={styles.projectFundingContainer}>
+                              <Text style={styles.projectFundingText}>
+                                💰 {formatCurrency(message.project.raised_amount)} / {formatCurrency(message.project.target_amount)}
+                              </Text>
+                              <View style={styles.projectViewButton}>
+                                <Text style={styles.projectViewButtonText}>View →</Text>
+                              </View>
+                            </View>
+                          </View>
+                        </LinearGradient>
+                      </View>
                     </View>
-                  )}
-                  <Text style={[styles.timestampSmall, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
-                    {formatTimestamp(message.timestamp)}
-                  </Text>
+                  </View>
                 </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+              ) : (
+                // Regular Text Message
+                <View style={styles.messageRow}>
+                  {/* Avatar */}
+                  <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
+                    <IconSymbol
+                      name={getCategoryIcon(message.category)}
+                      size={20}
+                      color="#FFFFFF"
+                    />
+                  </View>
 
-          {filteredMessages.length === 0 && (
+                  {/* Message Bubble */}
+                  <View style={styles.messageBubbleContainer}>
+                    <View style={[
+                      styles.messageBubble,
+                      { backgroundColor: colorScheme === 'dark' ? '#2A2A2A' : '#F0F0F0' },
+                    ]}>
+                      {/* Header with category and time */}
+                      <View style={styles.bubbleHeader}>
+                        <View style={styles.bubbleHeaderLeft}>
+                          <View style={[styles.categoryPill, { backgroundColor: getCategoryColor(message.category) + '30' }]}>
+                            <Text style={[styles.categoryPillText, { color: getCategoryColor(message.category) }]} numberOfLines={1}>
+                              {message.category}
+                            </Text>
+                          </View>
+                          {message.priority === 'high' && (
+                            <IconSymbol name="exclamationmark.circle.fill" size={14} color="#FF4757" />
+                          )}
+                        </View>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]} numberOfLines={1}>
+                          {formatTimestamp(message.timestamp)}
+                        </Text>
+                      </View>
+
+                      {/* Message Title */}
+                      <Text style={[
+                        styles.bubbleTitle,
+                        { color: Colors[colorScheme ?? 'light'].text },
+                        !message.read && styles.bubbleTitleUnread,
+                      ]}>
+                        {message.title}
+                      </Text>
+
+                      {/* Message Preview */}
+                      <Text
+                        style={[styles.bubbleContent, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}
+                        numberOfLines={2}
+                      >
+                        {message.content}
+                      </Text>
+                    </View>
+
+                    {/* Unread indicator */}
+                    {!message.read && (
+                      <View style={styles.unreadIndicator}>
+                        <View style={[styles.unreadDot, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]} />
+                      </View>
+                    )}
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+
+          {messages.length === 0 && (
             <View style={styles.emptyState}>
               <IconSymbol name="tray.fill" size={64} color={Colors[colorScheme ?? 'light'].tabIconDefault} />
               <Text style={[styles.emptyStateText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
-                No {filter === 'unread' ? 'unread' : ''} messages
+                No messages
               </Text>
             </View>
           )}
@@ -394,111 +457,105 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 12,
-    marginBottom: 15,
-  },
-  filterButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#00000010',
-    alignItems: 'center',
-  },
-  filterButtonActive: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
   messagesList: {
     flex: 1,
   },
   messagesContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 20,
+    paddingTop: 8,
   },
-  messageCard: {
-    padding: 16,
+  messageWrapper: {
+    marginBottom: 16,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  messageBubbleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  messageBubble: {
+    flex: 1,
     borderRadius: 16,
-    marginBottom: 12,
+    borderTopLeftRadius: 4,
+    padding: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  messageCardHeader: {
+  bubbleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-  },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    gap: 4,
-  },
-  categoryText: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  unreadDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FF4757',
-  },
-  messageTitle: {
-    fontSize: 17,
-    fontWeight: '600',
     marginBottom: 6,
+    gap: 8,
   },
-  messageUnread: {
-    fontWeight: 'bold',
-  },
-  messagePreview: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 10,
-  },
-  messageFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  senderBadge: {
+  bubbleHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     flex: 1,
+    minWidth: 0,
+    overflow: 'hidden',
   },
-  senderNameSmall: {
-    fontSize: 12,
+  bubbleSenderName: {
+    fontSize: 14,
+    fontWeight: '700',
+    flexShrink: 1,
+    maxWidth: 100,
+  },
+  categoryPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    flexShrink: 0,
+  },
+  categoryPillText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  bubbleTimeText: {
+    fontSize: 11,
     fontWeight: '500',
+    flexShrink: 0,
+    minWidth: 50,
   },
-  metaInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  bubbleTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 4,
+    lineHeight: 20,
   },
-  priorityIndicator: {
-    marginRight: 2,
+  bubbleTitleUnread: {
+    fontWeight: '700',
   },
-  timestampSmall: {
-    fontSize: 12,
+  bubbleContent: {
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  unreadIndicator: {
+    marginLeft: 8,
+    justifyContent: 'center',
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   emptyState: {
     alignItems: 'center',
@@ -630,5 +687,135 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Project Card Styles
+  projectCardBubble: {
+    flex: 1,
+    borderRadius: 16,
+    borderTopLeftRadius: 4,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  projectTimeStamp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  projectCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#10b981',
+  },
+  projectCardGradient: {
+    borderRadius: 14,
+  },
+  projectImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 100,
+  },
+  projectImage: {
+    width: '100%',
+    height: 100,
+  },
+  projectImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 64,
+  },
+  projectStatusBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#fef3c7',
+    borderWidth: 2,
+    borderColor: '#fcd34d',
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  projectStatusText: {
+    color: '#b45309',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  projectContent: {
+    padding: 8,
+  },
+  projectTitleContainer: {
+    marginBottom: 4,
+  },
+  projectTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1e293b',
+  },
+  projectTitleArabic: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#059669',
+  },
+  projectProgressContainer: {
+    marginBottom: 4,
+  },
+  projectProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  projectProgressLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  projectProgressValue: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#059669',
+  },
+  projectProgressBar: {
+    backgroundColor: '#cbd5e1',
+    borderRadius: 8,
+    height: 6,
+  },
+  projectProgressFill: {
+    backgroundColor: '#059669',
+    height: 6,
+    borderRadius: 8,
+  },
+  projectFundingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  projectFundingText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#166534',
+    flex: 1,
+  },
+  projectViewButton: {
+    backgroundColor: '#059669',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  projectViewButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 10,
   },
 });

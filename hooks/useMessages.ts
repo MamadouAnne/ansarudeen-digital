@@ -6,21 +6,6 @@ export interface MessageWithReadStatus extends Message {
   read: boolean;
 }
 
-interface DatabaseMessage {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  priority: string;
-  sender_id: string | null;
-  sender_name: string;
-  sender_role: string;
-  created_at: string;
-  updated_at: string;
-  published_at: string | null;
-  is_published: boolean;
-}
-
 export function useMessages() {
   const [messages, setMessages] = useState<MessageWithReadStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,14 +23,20 @@ export function useMessages() {
         // If not authenticated, just fetch messages without read status
         const { data, error: fetchError } = await supabase
           .from('messages')
-          .select('*')
+          .select(`
+            *,
+            projects:project_id(
+              id, title, title_arabic, description, full_description, category, status, progress, target_amount, raised_amount, featured,
+              project_media(uri)
+            )
+          `)
           .eq('is_published', true)
           .order('created_at', { ascending: true }); // Oldest first, will display bottom to top
 
         if (fetchError) throw fetchError;
 
         // Map to MessageWithReadStatus format with read = false for all
-        const messagesData: MessageWithReadStatus[] = ((data || []) as DatabaseMessage[]).map(msg => ({
+        const messagesData: MessageWithReadStatus[] = ((data || []) as any[]).map((msg: any) => ({
           id: msg.id,
           title: msg.title,
           content: msg.content,
@@ -57,6 +48,11 @@ export function useMessages() {
           },
           timestamp: msg.created_at,
           read: false,
+          project_id: msg.project_id,
+          project: msg.projects ? {
+            ...msg.projects,
+            image: msg.projects.project_media?.[0]?.uri || 'https://picsum.photos/seed/project-default/800/500',
+          } : null,
         }));
 
         setMessages(messagesData);
@@ -66,7 +62,11 @@ export function useMessages() {
           .from('messages')
           .select(`
             *,
-            message_reads!left(read_at)
+            message_reads!left(read_at),
+            projects:project_id(
+              id, title, title_arabic, description, full_description, category, status, progress, target_amount, raised_amount, featured,
+              project_media(uri)
+            )
           `)
           .eq('is_published', true)
           .eq('message_reads.user_id', user.id)
@@ -87,6 +87,11 @@ export function useMessages() {
           },
           timestamp: msg.created_at,
           read: msg.message_reads && msg.message_reads.length > 0,
+          project_id: msg.project_id,
+          project: msg.projects ? {
+            ...msg.projects,
+            image: msg.projects.project_media?.[0]?.uri || 'https://picsum.photos/seed/project-default/800/500',
+          } : null,
         }));
 
         setMessages(messagesData);

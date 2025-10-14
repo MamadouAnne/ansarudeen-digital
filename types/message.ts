@@ -10,4 +10,19 @@ export interface Message {
   };
   timestamp: string;
   read: boolean;
+  project_id?: number | null;
+  project?: {
+    id: number;
+    title: string;
+    title_arabic: string;
+    description: string;
+    full_description: string;
+    category: string;
+    status: 'ongoing' | 'planning' | 'completed';
+    progress: number;
+    target_amount: number;
+    raised_amount: number;
+    featured: boolean;
+    image?: string;
+  } | null;
 }

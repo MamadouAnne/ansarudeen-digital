@@ -86,8 +86,8 @@ export default function AdminProjectsScreen() {
         return;
       }
 
-      if (profile?.role !== 'admin') {
-        console.log('User is not admin. Role:', profile?.role);
+      if ((profile as any)?.role !== 'admin') {
+        console.log('User is not admin. Role:', (profile as any)?.role);
         Alert.alert('Access Denied', 'You do not have permission to access this page', [
           { text: 'OK', onPress: () => router.replace('/(tabs)/profile') }
         ]);
@@ -187,7 +187,7 @@ export default function AdminProjectsScreen() {
             type: 'image',
             uri: publicUrl,
             display_order: i,
-          });
+          } as any);
 
         if (mediaError) throw mediaError;
       }
@@ -213,13 +213,13 @@ export default function AdminProjectsScreen() {
         icon: '🏗️',
         status: formData.status,
         progress: 0,
-        budget: `$${formData.target_amount}`,
+        budget: `${formData.target_amount}`,
         target_amount: formData.target_amount,
         raised_amount: 0,
         start_date: new Date().toISOString().split('T')[0],
         donors: 0,
         likes: 0,
-      })
+      } as any)
       .select()
       .single();
 
@@ -227,7 +227,7 @@ export default function AdminProjectsScreen() {
 
       // Upload images if any
       if (selectedImages.length > 0 && data) {
-        await uploadImages(data.id);
+        await uploadImages((data as any).id);
       }
 
       Alert.alert('Success', 'Project added successfully!');
@@ -244,17 +244,20 @@ export default function AdminProjectsScreen() {
     if (!selectedProject) return;
 
     try {
+      const updateData: any = {
+        title: formData.title,
+        title_arabic: formData.title_arabic,
+        description: formData.description,
+        full_description: formData.description,
+        category: formData.category,
+        status: formData.status,
+        target_amount: formData.target_amount,
+      };
+
       const { error } = await supabase
         .from('projects')
-        .update({
-          title: formData.title,
-          title_arabic: formData.title_arabic,
-          description: formData.description,
-          full_description: formData.description,
-          category: formData.category,
-          status: formData.status,
-          target_amount: formData.target_amount,
-        })
+        // @ts-ignore - Supabase type inference issue
+        .update(updateData)
         .eq('id', selectedProject.id);
 
       if (error) throw error;
@@ -309,7 +312,8 @@ export default function AdminProjectsScreen() {
     try {
       const { error } = await supabase
         .from('projects')
-        .update({ status: newStatus })
+        // @ts-ignore - Supabase type inference issue
+        .update({ status: newStatus } as any)
         .eq('id', id);
 
       if (error) throw error;
@@ -336,7 +340,8 @@ export default function AdminProjectsScreen() {
 
       const { error } = await supabase
         .from('projects')
-        .update({ featured: !currentStatus })
+        // @ts-ignore - Supabase type inference issue
+        .update({ featured: !currentStatus } as any)
         .eq('id', id);
 
       if (error) throw error;
@@ -347,6 +352,49 @@ export default function AdminProjectsScreen() {
     } catch (error) {
       console.error('Error toggling featured:', error);
       Alert.alert('Error', 'Failed to update featured status');
+    }
+  };
+
+  const handleShareToMessages = async (project: Project) => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        Alert.alert('Error', 'You must be logged in to share messages.');
+        return;
+      }
+
+      // Get user's name from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          title: `New Project: ${project.title}`,
+          content: `Check out this project: ${project.title}`,
+          category: 'announcement',
+          priority: 'high',
+          sender_id: currentUser.id,
+          sender_name: (profile as any)?.full_name || 'Admin',
+          sender_role: 'Administrator',
+          published_at: new Date().toISOString(),
+          is_published: true,
+          project_id: project.id,
+        } as any);
+
+      if (error) throw error;
+
+      Alert.alert(
+        'Success!',
+        'Project has been shared to the Messages chat screen.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error sharing to messages:', error);
+      Alert.alert('Error', 'Failed to share project to messages.');
     }
   };
 
@@ -666,11 +714,19 @@ export default function AdminProjectsScreen() {
             </View>
             <View className="flex-row">
               <TouchableOpacity
-                className={`${project.featured ? 'bg-amber-600' : 'bg-slate-400'} py-2 px-4 rounded-xl flex-1`}
+                className={`${project.featured ? 'bg-amber-600' : 'bg-slate-400'} py-2 px-4 rounded-xl flex-1 mr-2`}
                 onPress={() => handleToggleFeatured(project.id, project.featured)}
               >
                 <Text className="text-white text-center font-bold text-sm">
                   {project.featured ? '⭐ Featured' : 'Feature'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="bg-blue-600 py-2 px-4 rounded-xl flex-1 ml-1"
+                onPress={() => handleShareToMessages(project)}
+              >
+                <Text className="text-white text-center font-bold text-sm">
+                  💬 Share
                 </Text>
               </TouchableOpacity>
             </View>
