@@ -1,4 +1,4 @@
--- Recreate user_profiles table for managing user roles
+-- Create user_profiles table for managing user roles
 CREATE TABLE IF NOT EXISTS public.user_profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT,
@@ -62,7 +62,47 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to automatically create user profile on signup
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW
     EXECUTE FUNCTION public.create_admin_profile();
+
+-- Now add the admin policies to messages table
+CREATE POLICY "Admins can insert messages"
+    ON public.messages
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.user_profiles
+            WHERE user_profiles.id = auth.uid()
+            AND user_profiles.role = 'admin'
+        )
+    );
+
+-- Only admins can update messages
+CREATE POLICY "Admins can update messages"
+    ON public.messages
+    FOR UPDATE
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.user_profiles
+            WHERE user_profiles.id = auth.uid()
+            AND user_profiles.role = 'admin'
+        )
+    );
+
+-- Only admins can delete messages
+CREATE POLICY "Admins can delete messages"
+    ON public.messages
+    FOR DELETE
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.user_profiles
+            WHERE user_profiles.id = auth.uid()
+            AND user_profiles.role = 'admin'
+        )
+    );
