@@ -82,8 +82,8 @@ export default function AdminNewsScreen() {
         return;
       }
 
-      if (profile?.role !== 'admin') {
-        console.log('News Admin: User is not admin. Role:', profile?.role);
+      if ((profile as any)?.role !== 'admin') {
+        console.log('News Admin: User is not admin. Role:', (profile as any)?.role);
         Alert.alert('Access Denied', 'You do not have permission to access this page', [
           { text: 'OK', onPress: () => router.replace('/(tabs)/profile') }
         ]);
@@ -183,7 +183,7 @@ export default function AdminNewsScreen() {
             type: 'image',
             uri: publicUrl,
             display_order: i,
-          });
+          } as any);
 
         if (mediaError) throw mediaError;
       }
@@ -214,7 +214,7 @@ export default function AdminNewsScreen() {
           read_time: formData.read_time,
           likes: 0,
           comments: 0,
-        })
+        } as any)
         .select()
         .single();
 
@@ -222,7 +222,7 @@ export default function AdminNewsScreen() {
 
       // Upload images if any
       if (selectedImages.length > 0 && data) {
-        await uploadImages(data.id);
+        await uploadImages((data as any).id);
       }
 
       Alert.alert('Success', 'Article added successfully!');
@@ -241,6 +241,7 @@ export default function AdminNewsScreen() {
     try {
       const { error } = await supabase
         .from('news_articles')
+        // @ts-ignore - Supabase type inference issue
         .update({
           title: formData.title,
           title_arabic: formData.title_arabic,

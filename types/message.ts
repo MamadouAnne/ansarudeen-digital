@@ -38,4 +38,21 @@ export interface Message {
     read_time: string;
     image?: string;
   } | null;
+  event_id?: number | null;
+  event?: {
+    id: number;
+    title: string;
+    title_arabic: string;
+    description: string;
+    full_description: string;
+    date: string;
+    time: string;
+    location: string;
+    category: string;
+    status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+    attendees: number;
+    capacity: number;
+    price: string;
+    image?: string;
+  } | null;
 }

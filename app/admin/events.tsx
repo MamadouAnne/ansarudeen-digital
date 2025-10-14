@@ -234,6 +234,7 @@ export default function AdminEventsScreen() {
 
       const { data, error } = await supabase
         .from('events')
+        // @ts-ignore - Supabase type inference issue
         .insert([eventData])
         .select()
         .single();
@@ -312,6 +313,7 @@ export default function AdminEventsScreen() {
     try {
       const { error } = await supabase
         .from('events')
+        // @ts-ignore - Supabase type inference issue
         .update({ status: newStatus })
         .eq('id', eventId);
 
@@ -328,6 +330,7 @@ export default function AdminEventsScreen() {
     try {
       const { error } = await supabase
         .from('events')
+        // @ts-ignore - Supabase type inference issue
         .update({ featured: !currentStatus })
         .eq('id', id);
 
@@ -337,6 +340,44 @@ export default function AdminEventsScreen() {
     } catch (error) {
       console.error('Error toggling featured:', error);
       Alert.alert('Error', 'Failed to update featured status');
+    }
+  };
+
+  const handleShareToMessages = async (event: Event) => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        Alert.alert('Error', 'You must be logged in to share messages.');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          title: `Upcoming Event: ${event.title}`,
+          content: `Join us for ${event.title} on ${event.date} at ${event.time}. Location: ${event.location}`,
+          category: 'event',
+          priority: 'high',
+          sender_id: currentUser.id,
+          sender_name: (profile as any)?.full_name || 'Admin',
+          sender_role: 'Administrator',
+          published_at: new Date().toISOString(),
+          is_published: true,
+          event_id: event.id,
+        } as any);
+
+      if (error) throw error;
+
+      Alert.alert('Success!', 'Event has been shared to the Messages chat screen.', [{ text: 'OK' }]);
+    } catch (error) {
+      console.error('Error sharing to messages:', error);
+      Alert.alert('Error', 'Failed to share event to messages.');
     }
   };
 
@@ -941,14 +982,20 @@ export default function AdminEventsScreen() {
                 <Text className="text-white text-center font-bold text-sm">Delete</Text>
               </TouchableOpacity>
             </View>
-            <View className="flex-row">
+            <View className="flex-row space-x-2">
               <TouchableOpacity
-                className={`${event.featured ? 'bg-amber-600' : 'bg-slate-400'} py-2 px-4 rounded-xl flex-1`}
+                className={`${event.featured ? 'bg-amber-600' : 'bg-slate-400'} py-2 rounded-lg flex-1 mr-2`}
                 onPress={() => handleToggleFeatured(event.id, event.featured)}
               >
                 <Text className="text-white text-center font-bold text-sm">
                   {event.featured ? '⭐ Featured' : 'Feature'}
                 </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleShareToMessages(event)}
+                className="bg-blue-600 py-2 rounded-lg flex-1"
+              >
+                <Text className="text-white font-bold text-center text-sm">💬 Share to Messages</Text>
               </TouchableOpacity>
             </View>
           </View>

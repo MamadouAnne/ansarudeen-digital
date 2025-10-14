@@ -32,6 +32,10 @@ export function useMessages() {
             news_articles:news_article_id(
               id, title, title_arabic, excerpt, content, category, author, date, read_time,
               news_media(uri)
+            ),
+            events:event_id(
+              id, title, title_arabic, description, full_description, date, time, location, category, status, attendees, capacity, price,
+              event_media(uri, is_primary)
             )
           `)
           .eq('is_published', true)
@@ -62,6 +66,11 @@ export function useMessages() {
             ...msg.news_articles,
             image: msg.news_articles.news_media?.[0]?.uri || 'https://picsum.photos/seed/news-default/800/500',
           } : null,
+          event_id: msg.event_id,
+          event: msg.events ? {
+            ...msg.events,
+            image: msg.events.event_media?.find((m: any) => m.is_primary)?.uri || msg.events.event_media?.[0]?.uri || 'https://picsum.photos/seed/event-default/800/500',
+          } : null,
         }));
 
         setMessages(messagesData);
@@ -79,6 +88,10 @@ export function useMessages() {
             news_articles:news_article_id(
               id, title, title_arabic, excerpt, content, category, author, date, read_time,
               news_media(uri)
+            ),
+            events:event_id(
+              id, title, title_arabic, description, full_description, date, time, location, category, status, attendees, capacity, price,
+              event_media(uri, is_primary)
             )
           `)
           .eq('is_published', true)
@@ -109,6 +122,11 @@ export function useMessages() {
           news_article: msg.news_articles ? {
             ...msg.news_articles,
             image: msg.news_articles.news_media?.[0]?.uri || 'https://picsum.photos/seed/news-default/800/500',
+          } : null,
+          event_id: msg.event_id,
+          event: msg.events ? {
+            ...msg.events,
+            image: msg.events.event_media?.find((m: any) => m.is_primary)?.uri || msg.events.event_media?.[0]?.uri || 'https://picsum.photos/seed/event-default/800/500',
           } : null,
         }));
 

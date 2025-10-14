@@ -47,6 +47,15 @@ export default function MessagesScreen() {
       return;
     }
 
+    // If message has an event, navigate to event details
+    if (message.event_id && message.event) {
+      if (!message.read) {
+        markAsRead(message.id);
+      }
+      router.push(`/events/${message.event_id}`);
+      return;
+    }
+
     // Otherwise, show message details
     setSelectedMessage(message);
     if (!message.read) {
@@ -399,6 +408,98 @@ export default function MessagesScreen() {
                             <Text style={styles.newsReadTime}>{message.news_article.read_time}</Text>
                             <View style={styles.newsReadButton}>
                               <Text style={styles.newsReadButtonText}>Read →</Text>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ) : message.event_id && message.event ? (
+                // Event Card Message
+                <View style={styles.messageRow}>
+                  <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
+                    <IconSymbol
+                      name={getCategoryIcon(message.category)}
+                      size={20}
+                      color="#FFFFFF"
+                    />
+                  </View>
+
+                  <View style={styles.messageBubbleContainer}>
+                    <View style={[styles.eventCardBubble, { backgroundColor: colorScheme === 'dark' ? '#2A2A2A' : '#F0F0F0' }]}>
+                      {/* Time Badge */}
+                      <View style={styles.eventTimeStamp}>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+                          {formatTimestamp(message.timestamp)}
+                        </Text>
+                        {!message.read && (
+                          <View style={[styles.unreadDot, { backgroundColor: Colors[colorScheme ?? 'light'].tint, marginLeft: 6 }]} />
+                        )}
+                      </View>
+
+                      {/* Event Card */}
+                      <View style={styles.eventCard}>
+                        {/* Event Image */}
+                        {message.event.image && (
+                          <View style={styles.eventImageContainer}>
+                            <Image
+                              source={{ uri: message.event.image }}
+                              style={styles.eventImage}
+                              resizeMode="cover"
+                            />
+                            <LinearGradient
+                              colors={['rgba(69, 183, 209, 0.7)', 'transparent']}
+                              style={styles.eventImageOverlay}
+                            />
+                            <View style={styles.eventStatusBadge}>
+                              <Text style={styles.eventStatusText}>
+                                {message.event.status === 'upcoming' ? 'Upcoming' :
+                                 message.event.status === 'ongoing' ? 'Happening Now' :
+                                 message.event.status === 'completed' ? 'Completed' : 'Cancelled'}
+                              </Text>
+                            </View>
+                          </View>
+                        )}
+
+                        {/* Event Content */}
+                        <View style={styles.eventContent}>
+                          <Text style={styles.eventTitle} numberOfLines={2}>
+                            {message.event.title}
+                          </Text>
+                          <Text style={styles.eventTitleArabic} numberOfLines={1}>
+                            {message.event.title_arabic}
+                          </Text>
+                          <Text style={styles.eventDescription} numberOfLines={2}>
+                            {message.event.description}
+                          </Text>
+
+                          {/* Event Details */}
+                          <View style={styles.eventDetailsContainer}>
+                            <View style={styles.eventDetailRow}>
+                              <Text style={styles.eventDetailIcon}>📅</Text>
+                              <Text style={styles.eventDetailText}>{message.event.date}</Text>
+                            </View>
+                            <View style={styles.eventDetailRow}>
+                              <Text style={styles.eventDetailIcon}>⏰</Text>
+                              <Text style={styles.eventDetailText}>{message.event.time}</Text>
+                            </View>
+                            <View style={styles.eventDetailRow}>
+                              <Text style={styles.eventDetailIcon}>📍</Text>
+                              <Text style={styles.eventDetailText} numberOfLines={1}>{message.event.location}</Text>
+                            </View>
+                          </View>
+
+                          {/* Event Meta */}
+                          <View style={styles.eventMetaContainer}>
+                            <View style={styles.eventAttendanceInfo}>
+                              <Text style={styles.eventAttendanceText}>
+                                👥 {message.event.attendees}/{message.event.capacity}
+                              </Text>
+                              <Text style={styles.eventPriceText}>{message.event.price}</Text>
+                            </View>
+                            <View style={styles.eventJoinButton}>
+                              <Text style={styles.eventJoinButtonText}>View Details →</Text>
                             </View>
                           </View>
                         </View>
@@ -1000,6 +1101,139 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   newsReadButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 10,
+  },
+  // Event Card Styles
+  eventCardBubble: {
+    flex: 1,
+    borderRadius: 16,
+    borderTopLeftRadius: 4,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  eventTimeStamp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  eventCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#45B7D1',
+  },
+  eventImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 120,
+  },
+  eventImage: {
+    width: '100%',
+    height: 120,
+  },
+  eventImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+  },
+  eventStatusBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#dbeafe',
+    borderWidth: 2,
+    borderColor: '#93c5fd',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  eventStatusText: {
+    color: '#1e40af',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  eventContent: {
+    padding: 12,
+  },
+  eventTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1e293b',
+    marginBottom: 2,
+    lineHeight: 20,
+  },
+  eventTitleArabic: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#45B7D1',
+    marginBottom: 4,
+  },
+  eventDescription: {
+    fontSize: 13,
+    color: '#64748b',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  eventDetailsContainer: {
+    backgroundColor: '#f0f9ff',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
+    gap: 4,
+  },
+  eventDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  eventDetailIcon: {
+    fontSize: 14,
+    width: 20,
+  },
+  eventDetailText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#334155',
+    flex: 1,
+  },
+  eventMetaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  eventAttendanceInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  eventAttendanceText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  eventPriceText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#059669',
+  },
+  eventJoinButton: {
+    backgroundColor: '#45B7D1',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  eventJoinButtonText: {
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 10,
