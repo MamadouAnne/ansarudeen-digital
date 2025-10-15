@@ -11,6 +11,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function MessagesScreen() {
+  // Icon size updated to 16
   const colorScheme = useColorScheme();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const { messages, loading, error, refetch, markAsRead } = useMessages();
@@ -262,7 +263,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={20}
+                      size={16}
                       color="#FFFFFF"
                     />
                   </View>
@@ -352,7 +353,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={20}
+                      size={16}
                       color="#FFFFFF"
                     />
                   </View>
@@ -421,7 +422,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={20}
+                      size={16}
                       color="#FFFFFF"
                     />
                   </View>
@@ -514,7 +515,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={20}
+                      size={16}
                       color="#FFFFFF"
                     />
                   </View>
@@ -653,9 +654,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 4,
