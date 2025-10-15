@@ -2,13 +2,14 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Message } from '@/types/message';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useMessages } from '@/hooks/useMessages';
 import { useAdmin } from '@/hooks/useAdmin';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 export default function MessagesScreen() {
   // Icon size updated to 16
@@ -17,6 +18,8 @@ export default function MessagesScreen() {
   const { messages, loading, error, refetch, markAsRead } = useMessages();
   const { isAdmin } = useAdmin();
   const scrollViewRef = useRef<ScrollView>(null);
+  const navigation = useNavigation();
+  const [isScreenFocused, setIsScreenFocused] = useState(false);
 
   const unreadCount = messages.filter(msg => !msg.read).length;
 
@@ -28,6 +31,38 @@ export default function MessagesScreen() {
       }, 100);
     }
   }, [messages.length]);
+
+  // Track when screen is focused
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      setIsScreenFocused(true);
+    });
+
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      setIsScreenFocused(false);
+    });
+
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBlur();
+    };
+  }, [navigation]);
+
+  // Handle tab press when already on the screen
+  useEffect(() => {
+    const unsubscribeTabPress = navigation.addListener('tabPress' as any, () => {
+      if (isScreenFocused && messages.length > 0 && scrollViewRef.current) {
+        // User is already on messages screen and pressed the tab again
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    });
+
+    return () => {
+      unsubscribeTabPress();
+    };
+  }, [navigation, isScreenFocused, messages.length]);
 
   const handleMessagePress = (message: Message) => {
     // If message has a project, navigate to project details
