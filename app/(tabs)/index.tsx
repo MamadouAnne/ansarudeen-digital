@@ -1,7 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useCarousel } from '@/contexts/CarouselContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter, useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator, Image } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import MedinaBayeProjectCard from '@/components/MedinaBayeProjectCard';
@@ -33,13 +34,14 @@ interface Event {
 
 export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
+  const { carouselState, setActiveSlide, setIsManualScrolling } = useCarousel();
   const router = useRouter();
   const carouselRef = useRef<ScrollView>(null);
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [isManualScrolling, setIsManualScrolling] = useState(false);
+
+  const { activeSlide, isManualScrolling } = carouselState;
 
   const quickStats = {
     totalMembers: 1247,
@@ -65,17 +67,20 @@ export default function HomeScreen() {
   };
 
 
-  // Fetch featured content on mount
+  // Fetch featured content on mount only
   useEffect(() => {
     fetchFeaturedContent();
   }, []);
 
-  // Refresh featured content when screen comes into focus (e.g., after returning from admin)
-  useFocusEffect(
-    useCallback(() => {
-      fetchFeaturedContent();
-    }, [])
-  );
+  // Restore carousel position when content is loaded
+  useEffect(() => {
+    if (!loading && carouselRef.current) {
+      // Restore to saved position (including 0 for first slide)
+      setTimeout(() => {
+        carouselRef.current?.scrollTo({ x: activeSlide * width, animated: false });
+      }, 100);
+    }
+  }, [loading]);
 
   const fetchFeaturedContent = async () => {
     try {
@@ -145,14 +150,12 @@ export default function HomeScreen() {
     if (totalSlides <= 1 || isManualScrolling) return; // Don't auto-scroll if only founder slide or user is manually scrolling
 
     const interval = setInterval(() => {
-      setActiveSlide((prev) => {
-        const next = (prev + 1) % totalSlides;
-        carouselRef.current?.scrollTo({ x: next * width, animated: true });
-        return next;
-      });
+      const next = (activeSlide + 1) % totalSlides;
+      setActiveSlide(next);
+      carouselRef.current?.scrollTo({ x: next * width, animated: true });
     }, 5000); // 5 seconds per slide
     return () => clearInterval(interval);
-  }, [featuredProjects.length, featuredEvents.length, width, isManualScrolling]);
+  }, [featuredProjects.length, featuredEvents.length, width, isManualScrolling, activeSlide, setActiveSlide]);
 
   const paddingTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 54 : 64;
 
@@ -190,10 +193,20 @@ export default function HomeScreen() {
                 showsHorizontalScrollIndicator={false}
                 scrollEnabled={true}
                 className="h-64"
-                onScrollBeginDrag={() => setIsManualScrolling(true)}
-                onScrollEndDrag={() => {
-                  setTimeout(() => setIsManualScrolling(false), 5000); // Resume auto-scroll after 5 seconds
+                onScrollBeginDrag={() => {
+                  setIsManualScrolling(true);
                 }}
+                onScrollEndDrag={() => {
+                  setTimeout(() => {
+                    setIsManualScrolling(false);
+                  }, 5000); // Resume auto-scroll after 5 seconds
+                }}
+                onScroll={(event) => {
+                  const scrollPosition = event.nativeEvent.contentOffset.x;
+                  const index = Math.round(scrollPosition / width);
+                  setActiveSlide(index);
+                }}
+                scrollEventThrottle={16}
               >
               {/* Slide 1: Founder */}
               <View style={{ width, height: Platform.OS === 'android' ? 280 : 256 }}>

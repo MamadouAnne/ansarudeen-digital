@@ -61,11 +61,11 @@ export default function ComposeMessageScreen() {
           category,
           priority,
           sender_id: user.id,
-          sender_name: profile?.full_name || 'Ansarudeen Admin',
+          sender_name: (profile as any)?.full_name || 'Admin',
           sender_role: 'Administrator',
           published_at: new Date().toISOString(),
           is_published: true,
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -145,7 +145,7 @@ export default function ComposeMessageScreen() {
                 ]}
                 onPress={() => setCategory(cat.value)}
               >
-                <IconSymbol name={cat.icon} size={24} color={cat.color} />
+                <IconSymbol name={cat.icon as any} size={24} color={cat.color} />
                 <Text
                   style={[
                     styles.optionLabel,
@@ -244,7 +244,7 @@ export default function ComposeMessageScreen() {
                 ]}
               >
                 <IconSymbol
-                  name={categories.find((c) => c.value === category)?.icon || 'envelope.fill'}
+                  name={(categories.find((c) => c.value === category)?.icon || 'envelope.fill') as any}
                   size={16}
                   color={categories.find((c) => c.value === category)?.color || '#000000'}
                 />
