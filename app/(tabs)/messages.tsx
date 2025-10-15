@@ -152,36 +152,44 @@ export default function MessagesScreen() {
 
         <ScrollView style={styles.detailContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.detailHeader}>
-            <View style={[styles.categoryBadgeLarge, { backgroundColor: getCategoryColor(selectedMessage.category) }]}>
-              <IconSymbol
-                name={getCategoryIcon(selectedMessage.category)}
-                size={32}
-                color="#FFFFFF"
-              />
+            {/* Icon and Title Row */}
+            <View style={styles.detailTitleRow}>
+              <View style={[styles.categoryBadgeSmall, { backgroundColor: getCategoryColor(selectedMessage.category) }]}>
+                <IconSymbol
+                  name={getCategoryIcon(selectedMessage.category)}
+                  size={24}
+                  color="#FFFFFF"
+                />
+              </View>
+              <Text style={[styles.detailTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+                {selectedMessage.title}
+              </Text>
             </View>
 
-            <Text style={[styles.detailTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
-              {selectedMessage.title}
-            </Text>
-
+            {/* Meta Information */}
             <View style={styles.detailMeta}>
               <View style={styles.metaTags}>
-                <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(selectedMessage.priority) + '20' }]}>
+                <View style={[styles.categoryTag, { backgroundColor: getCategoryColor(selectedMessage.category) + '15', borderColor: getCategoryColor(selectedMessage.category) }]}>
+                  <Text style={[styles.categoryTagText, { color: getCategoryColor(selectedMessage.category) }]}>
+                    {selectedMessage.category}
+                  </Text>
+                </View>
+                <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(selectedMessage.priority) + '20', borderWidth: 1, borderColor: getPriorityColor(selectedMessage.priority) + '40' }]}>
                   <Text style={[styles.priorityText, { color: getPriorityColor(selectedMessage.priority) }]}>
                     {selectedMessage.priority.toUpperCase()}
                   </Text>
                 </View>
-                <Text style={[styles.timestamp, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+                <Text style={[styles.timestamp, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.6 }]}>
                   {formatTimestamp(selectedMessage.timestamp)}
                 </Text>
               </View>
             </View>
           </View>
 
-          <View style={[styles.divider, { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault + '20' }]} />
+          <View style={[styles.divider, { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault + '15' }]} />
 
           <View style={styles.detailContent}>
-            <Text style={[styles.contentText, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.contentText, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.85 }]}>
               {selectedMessage.content}
             </Text>
           </View>
@@ -263,7 +271,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={16}
+                      size={18}
                       color="#FFFFFF"
                     />
                   </View>
@@ -272,7 +280,7 @@ export default function MessagesScreen() {
                     <View style={[styles.projectCardBubble, { backgroundColor: colorScheme === 'dark' ? '#2A2A2A' : '#F0F0F0' }]}>
                       {/* Time Badge */}
                       <View style={styles.projectTimeStamp}>
-                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.7 }]}>
                           {formatTimestamp(message.timestamp)}
                         </Text>
                         {!message.read && (
@@ -353,7 +361,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={16}
+                      size={18}
                       color="#FFFFFF"
                     />
                   </View>
@@ -362,7 +370,7 @@ export default function MessagesScreen() {
                     <View style={[styles.newsCardBubble, { backgroundColor: colorScheme === 'dark' ? '#2A2A2A' : '#F0F0F0' }]}>
                       {/* Time Badge */}
                       <View style={styles.newsTimeStamp}>
-                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.7 }]}>
                           {formatTimestamp(message.timestamp)}
                         </Text>
                         {!message.read && (
@@ -422,7 +430,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={16}
+                      size={18}
                       color="#FFFFFF"
                     />
                   </View>
@@ -431,7 +439,7 @@ export default function MessagesScreen() {
                     <View style={[styles.eventCardBubble, { backgroundColor: colorScheme === 'dark' ? '#2A2A2A' : '#F0F0F0' }]}>
                       {/* Time Badge */}
                       <View style={styles.eventTimeStamp}>
-                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.7 }]}>
                           {formatTimestamp(message.timestamp)}
                         </Text>
                         {!message.read && (
@@ -515,7 +523,7 @@ export default function MessagesScreen() {
                   <View style={[styles.avatar, { backgroundColor: getCategoryColor(message.category) }]}>
                     <IconSymbol
                       name={getCategoryIcon(message.category)}
-                      size={16}
+                      size={18}
                       color="#FFFFFF"
                     />
                   </View>
@@ -529,16 +537,13 @@ export default function MessagesScreen() {
                       {/* Header with category and time */}
                       <View style={styles.bubbleHeader}>
                         <View style={styles.bubbleHeaderLeft}>
-                          <View style={[styles.categoryPill, { backgroundColor: getCategoryColor(message.category) + '30' }]}>
+                          <View style={[styles.categoryPill, { backgroundColor: getCategoryColor(message.category) + '15', borderWidth: 1, borderColor: getCategoryColor(message.category) }]}>
                             <Text style={[styles.categoryPillText, { color: getCategoryColor(message.category) }]} numberOfLines={1}>
                               {message.category}
                             </Text>
                           </View>
-                          {message.priority === 'high' && (
-                            <IconSymbol name="exclamationmark.circle.fill" size={14} color="#FF4757" />
-                          )}
                         </View>
-                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]} numberOfLines={1}>
+                        <Text style={[styles.bubbleTimeText, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.7 }]} numberOfLines={1}>
                           {formatTimestamp(message.timestamp)}
                         </Text>
                       </View>
@@ -554,7 +559,7 @@ export default function MessagesScreen() {
 
                       {/* Message Preview */}
                       <Text
-                        style={[styles.bubbleContent, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}
+                        style={[styles.bubbleContent, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.75 }]}
                         numberOfLines={2}
                       >
                         {message.content}
@@ -762,25 +767,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   detailHeader: {
-    paddingTop: 10,
-    paddingBottom: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
-  categoryBadgeLarge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  detailTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  categoryBadgeSmall: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   detailTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    lineHeight: 36,
-    marginBottom: 16,
+    lineHeight: 30,
+    flex: 1,
   },
   detailMeta: {
-    gap: 12,
+    gap: 8,
   },
   senderInfo: {
     flexDirection: 'row',
@@ -809,30 +824,44 @@ const styles = StyleSheet.create({
   metaTags: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  categoryTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  categoryTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   priorityBadge: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 10,
   },
   priorityText: {
     fontSize: 11,
     fontWeight: '700',
   },
   timestamp: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '500',
   },
   divider: {
     height: 1,
-    marginVertical: 20,
+    marginVertical: 16,
   },
   detailContent: {
     paddingBottom: 40,
   },
   contentText: {
-    fontSize: 16,
-    lineHeight: 26,
+    fontSize: 17,
+    lineHeight: 28,
+    letterSpacing: 0.3,
   },
   // Loading and Error States
   loadingContainer: {
