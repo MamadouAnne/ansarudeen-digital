@@ -1,30 +1,66 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { router, Stack } from 'expo-router';
 import { MarketplaceItem, MarketplaceCategory } from '@/types/marketplace';
+import { supabase } from '@/lib/supabase';
 
 export default function MarketplaceScreen() {
   const colorScheme = useColorScheme();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedItem, setSelectedItem] = useState<MarketplaceItem | null>(null);
-
-  // Categories
-  const categories: MarketplaceCategory[] = [
+  const [categories, setCategories] = useState<MarketplaceCategory[]>([
     { id: 'all', name: 'All Items', name_arabic: 'الكل', icon: '📦', color: '#059669' },
-    { id: 'books', name: 'Books', name_arabic: 'كتب', icon: '📚', color: '#3B82F6' },
-    { id: 'clothing', name: 'Clothing', name_arabic: 'ملابس', icon: '👔', color: '#8B5CF6' },
-    { id: 'prayer_items', name: 'Prayer Items', name_arabic: 'أدوات الصلاة', icon: '🕌', color: '#10B981' },
-    { id: 'accessories', name: 'Accessories', name_arabic: 'إكسسوارات', icon: '📿', color: '#F59E0B' },
-    { id: 'home_decor', name: 'Home Decor', name_arabic: 'ديكور', icon: '🏡', color: '#EF4444' },
-  ];
+  ]);
+  const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Static marketplace items
-  const marketplaceItems: MarketplaceItem[] = [
+  // Fetch categories from Supabase
+  useEffect(() => {
+    async function fetchCategories() {
+      const { data, error } = await supabase
+        .from('marketplace_categories')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+      } else if (data) {
+        setCategories([
+          { id: 'all', name: 'All Items', name_arabic: 'الكل', icon: '📦', color: '#059669' },
+          ...data,
+        ]);
+      }
+    }
+
+    fetchCategories();
+  }, []);
+
+  // Fetch marketplace items from Supabase
+  useEffect(() => {
+    async function fetchMarketplaceItems() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('marketplace_items')
+        .select('*')
+        .order('featured', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching marketplace items:', error);
+      } else if (data) {
+        setMarketplaceItems(data);
+      }
+      setLoading(false);
+    }
+
+    fetchMarketplaceItems();
+  }, []);
+
+  // Keep the old static items for reference (remove after testing)
+  const _staticMarketplaceItems: MarketplaceItem[] = [
     {
       id: 1,
       title: 'Quran with Tafsir - Deluxe Edition',
@@ -36,7 +72,7 @@ export default function MarketplaceScreen() {
       seller_name: 'Ibrahim Hassan',
       seller_phone: '+1234567890',
       seller_whatsapp: '+1234567890',
-      image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=800&h=600&fit=crop'],
       location: 'New York, NY',
       created_at: '2024-01-10T10:00:00Z',
       featured: true,
@@ -52,7 +88,7 @@ export default function MarketplaceScreen() {
       seller_name: 'Fatima Ahmed',
       seller_phone: '+1234567891',
       seller_whatsapp: '+1234567891',
-      image: 'https://images.unsplash.com/photo-1584286595398-a59f876a3e21?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1584286595398-a59f876a3e21?w=800&h=600&fit=crop'],
       location: 'Chicago, IL',
       created_at: '2024-01-09T14:30:00Z',
       featured: true,
@@ -67,7 +103,7 @@ export default function MarketplaceScreen() {
       condition: 'like_new',
       seller_name: 'Mohammed Ali',
       seller_phone: '+1234567892',
-      image: 'https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800&h=600&fit=crop'],
       location: 'Houston, TX',
       created_at: '2024-01-08T09:15:00Z',
     },
@@ -82,7 +118,7 @@ export default function MarketplaceScreen() {
       seller_name: 'Aisha Rahman',
       seller_phone: '+1234567893',
       seller_whatsapp: '+1234567893',
-      image: 'https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=800&h=600&fit=crop'],
       location: 'Los Angeles, CA',
       created_at: '2024-01-07T16:45:00Z',
       featured: true,
@@ -97,7 +133,7 @@ export default function MarketplaceScreen() {
       condition: 'new',
       seller_name: 'Yusuf Omar',
       seller_phone: '+1234567894',
-      image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&h=600&fit=crop'],
       location: 'Miami, FL',
       created_at: '2024-01-06T11:20:00Z',
     },
@@ -112,7 +148,7 @@ export default function MarketplaceScreen() {
       seller_name: 'Zayd Abdullah',
       seller_phone: '+1234567895',
       seller_whatsapp: '+1234567895',
-      image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=600&fit=crop'],
       location: 'Dallas, TX',
       created_at: '2024-01-05T13:00:00Z',
     },
@@ -126,7 +162,7 @@ export default function MarketplaceScreen() {
       condition: 'new',
       seller_name: 'Maryam Said',
       seller_phone: '+1234567896',
-      image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&h=600&fit=crop'],
       location: 'Boston, MA',
       created_at: '2024-01-04T10:30:00Z',
     },
@@ -141,7 +177,7 @@ export default function MarketplaceScreen() {
       seller_name: 'Bilal Hussein',
       seller_phone: '+1234567897',
       seller_whatsapp: '+1234567897',
-      image: 'https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=800&h=600&fit=crop',
+      images: ['https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=800&h=600&fit=crop'],
       location: 'Seattle, WA',
       created_at: '2024-01-03T15:45:00Z',
     },
@@ -158,35 +194,6 @@ export default function MarketplaceScreen() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
-
-  const handleCall = (phone: string, sellerName: string) => {
-    Alert.alert(
-      `Call ${sellerName}`,
-      `Would you like to call ${phone}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Call',
-          onPress: () => Linking.openURL(`tel:${phone}`)
-        },
-      ]
-    );
-  };
-
-  const handleWhatsApp = (phone: string, itemTitle: string) => {
-    const message = `Hi, I'm interested in your listing: ${itemTitle}`;
-    const url = Platform.OS === 'ios'
-      ? `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`
-      : `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
-
-    Linking.canOpenURL(url).then((supported) => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        Alert.alert('WhatsApp not installed', 'Please install WhatsApp to contact the seller.');
-      }
-    });
   };
 
   const getConditionColor = (condition: string) => {
@@ -209,125 +216,9 @@ export default function MarketplaceScreen() {
     }
   };
 
-  if (selectedItem) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => setSelectedItem(null)}
-            style={styles.backButton}
-          >
-            <IconSymbol name="chevron.left" size={24} color={Colors[colorScheme ?? 'light'].tint} />
-            <Text style={[styles.backText, { color: Colors[colorScheme ?? 'light'].tint }]}>
-              Back
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.detailContainer} showsVerticalScrollIndicator={false}>
-          {/* Item Image */}
-          <View style={styles.detailImageContainer}>
-            <Image
-              source={{ uri: selectedItem.image }}
-              style={styles.detailImage}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              colors={['rgba(0, 0, 0, 0.6)', 'transparent']}
-              style={styles.detailImageOverlay}
-            />
-            {selectedItem.featured && (
-              <View style={styles.featuredBadgeDetail}>
-                <Text style={styles.featuredBadgeText}>⭐ Featured</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Item Details */}
-          <View style={styles.detailContent}>
-            <View style={styles.detailHeader}>
-              <View style={styles.detailTitleContainer}>
-                <Text style={[styles.detailTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
-                  {selectedItem.title}
-                </Text>
-                <Text style={[styles.detailTitleArabic, { color: Colors[colorScheme ?? 'light'].tint }]}>
-                  {selectedItem.title_arabic}
-                </Text>
-              </View>
-              <Text style={styles.detailPrice}>{formatCurrency(selectedItem.price)}</Text>
-            </View>
-
-            <View style={styles.detailMeta}>
-              <View style={[styles.conditionBadge, { backgroundColor: getConditionColor(selectedItem.condition) + '20', borderColor: getConditionColor(selectedItem.condition) }]}>
-                <Text style={[styles.conditionText, { color: getConditionColor(selectedItem.condition) }]}>
-                  {getConditionLabel(selectedItem.condition)}
-                </Text>
-              </View>
-              <Text style={[styles.location, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
-                📍 {selectedItem.location}
-              </Text>
-            </View>
-
-            <View style={[styles.divider, { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault + '20' }]} />
-
-            <View style={styles.descriptionSection}>
-              <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
-                Description
-              </Text>
-              <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text, opacity: 0.8 }]}>
-                {selectedItem.description}
-              </Text>
-            </View>
-
-            <View style={[styles.divider, { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault + '20' }]} />
-
-            <View style={styles.sellerSection}>
-              <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
-                Seller Information
-              </Text>
-              <View style={[styles.sellerCard, { backgroundColor: colorScheme === 'dark' ? '#1A1A1A' : '#F5F5F5' }]}>
-                <View style={styles.sellerAvatar}>
-                  <IconSymbol name="person.fill" size={24} color="#FFFFFF" />
-                </View>
-                <View style={styles.sellerInfo}>
-                  <Text style={[styles.sellerName, { color: Colors[colorScheme ?? 'light'].text }]}>
-                    {selectedItem.seller_name}
-                  </Text>
-                  <Text style={[styles.sellerPhone, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
-                    📞 {selectedItem.seller_phone}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Contact Buttons */}
-            <View style={styles.contactButtons}>
-              <TouchableOpacity
-                style={[styles.callButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
-                onPress={() => handleCall(selectedItem.seller_phone, selectedItem.seller_name)}
-              >
-                <IconSymbol name="phone.fill" size={20} color="#FFFFFF" />
-                <Text style={styles.callButtonText}>Call Seller</Text>
-              </TouchableOpacity>
-
-              {selectedItem.seller_whatsapp && (
-                <TouchableOpacity
-                  style={styles.whatsappButton}
-                  onPress={() => handleWhatsApp(selectedItem.seller_whatsapp!, selectedItem.title)}
-                >
-                  <Text style={styles.whatsappIcon}>💬</Text>
-                  <Text style={styles.whatsappButtonText}>WhatsApp</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <IconSymbol name="chevron.left" size={24} color={Colors[colorScheme ?? 'light'].tint} />
@@ -341,7 +232,12 @@ export default function MarketplaceScreen() {
             سوق إسلامي
           </Text>
         </View>
-        <View style={{ width: 80 }} />
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+          onPress={() => router.push('/marketplace/add-item')}
+        >
+          <IconSymbol name="plus" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
 
       {/* Categories */}
@@ -394,26 +290,40 @@ export default function MarketplaceScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.itemsContent}
       >
-        <View style={styles.itemsGrid}>
-          {filteredItems.map((item) => (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />
+            <Text style={[styles.loadingText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+              Loading marketplace...
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.itemsGrid}>
+            {filteredItems.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={[
                 styles.itemCard,
                 { backgroundColor: colorScheme === 'dark' ? '#1A1A1A' : '#FFFFFF' },
               ]}
-              onPress={() => setSelectedItem(item)}
+              onPress={() => router.push(`/marketplace/${item.id}`)}
               activeOpacity={0.7}
             >
               <View style={styles.itemImageContainer}>
                 <Image
-                  source={{ uri: item.image }}
+                  source={{ uri: item.images && item.images.length > 0 ? item.images[0] : 'https://via.placeholder.com/400x400?text=No+Image' }}
                   style={styles.itemImage}
                   resizeMode="cover"
                 />
                 {item.featured && (
                   <View style={styles.featuredBadge}>
                     <Text style={styles.featuredText}>⭐</Text>
+                  </View>
+                )}
+                {item.images && item.images.length > 1 && (
+                  <View style={styles.imageCountBadge}>
+                    <IconSymbol name="photo.stack" size={14} color="#FFFFFF" />
+                    <Text style={styles.imageCountText}>{item.images.length}</Text>
                   </View>
                 )}
                 <View style={[styles.priceBadge, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}>
@@ -452,9 +362,10 @@ export default function MarketplaceScreen() {
               </View>
             </TouchableOpacity>
           ))}
-        </View>
+          </View>
+        )}
 
-        {filteredItems.length === 0 && (
+        {!loading && filteredItems.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📦</Text>
             <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
@@ -486,6 +397,18 @@ const styles = StyleSheet.create({
   backText: {
     fontSize: 17,
     fontWeight: '600',
+  },
+  addButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   headerTitle: {
     fontSize: 24,
@@ -567,6 +490,23 @@ const styles = StyleSheet.create({
   featuredText: {
     fontSize: 12,
   },
+  imageCountBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  imageCountText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
   priceBadge: {
     position: 'absolute',
     bottom: 8,
@@ -631,165 +571,14 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
   },
-  // Detail View Styles
-  detailContainer: {
+  loadingContainer: {
     flex: 1,
-  },
-  detailImageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 300,
-  },
-  detailImage: {
-    width: '100%',
-    height: '100%',
-  },
-  detailImageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 120,
-  },
-  featuredBadgeDetail: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    backgroundColor: '#FCD34D',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  featuredBadgeText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#92400E',
-  },
-  detailContent: {
-    padding: 20,
-  },
-  detailHeader: {
-    marginBottom: 16,
-  },
-  detailTitleContainer: {
-    marginBottom: 8,
-  },
-  detailTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    lineHeight: 32,
-  },
-  detailTitleArabic: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  detailPrice: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#059669',
-  },
-  detailMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 20,
-  },
-  conditionBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  conditionText: {
-    fontSize: 13,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  location: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-    marginVertical: 20,
-  },
-  descriptionSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 15,
-    lineHeight: 24,
-  },
-  sellerSection: {
-    marginBottom: 24,
-  },
-  sellerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    gap: 12,
-  },
-  sellerAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#059669',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sellerInfo: {
-    flex: 1,
-  },
-  sellerName: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  sellerPhone: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  contactButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  callButton: {
-    flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 8,
+    paddingVertical: 80,
   },
-  callButtonText: {
-    color: '#FFFFFF',
+  loadingText: {
     fontSize: 16,
-    fontWeight: '700',
-  },
-  whatsappButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
-    backgroundColor: '#25D366',
-    gap: 8,
-  },
-  whatsappIcon: {
-    fontSize: 20,
-  },
-  whatsappButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    marginTop: 16,
   },
 });

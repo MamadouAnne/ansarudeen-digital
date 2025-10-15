@@ -1,0 +1,68 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                   ⚠️  ACTION REQUIRED NOW  ⚠️                  ║
+║          Image Upload is Blocked - Need RLS Policies          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+QUICK FIX - Copy this SQL and run it in Supabase Dashboard:
+
+==============================================================
+                      COPY THIS SQL
+==============================================================
+
+-- Policy 1: Let everyone view images
+CREATE POLICY "Anyone can view marketplace images"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'marketplace-images');
+
+-- Policy 2: Let authenticated users upload
+CREATE POLICY "Authenticated users can upload"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'marketplace-images' AND auth.uid() IS NOT NULL);
+
+-- Policy 3: Let users update their own images
+CREATE POLICY "Users can update their own images"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'marketplace-images' AND auth.uid() = owner)
+WITH CHECK (bucket_id = 'marketplace-images' AND auth.uid() = owner);
+
+-- Policy 4: Let users delete their own images
+CREATE POLICY "Users can delete their own images"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'marketplace-images' AND auth.uid() = owner);
+
+==============================================================
+
+HOW TO RUN:
+1. Go to: https://supabase.com/dashboard
+2. Select your project
+3. Click "SQL Editor" in left sidebar
+4. Click "New query"
+5. Paste the SQL above
+6. Click "Run" (or press Cmd+Enter)
+
+THAT'S IT! ✅
+
+After running this, go back to your app and try uploading again.
+It will work immediately!
+
+==============================================================
+                    WHY THIS IS NEEDED
+==============================================================
+
+The marketplace-images bucket exists ✅
+Your upload code works ✅
+But Supabase is blocking uploads because there are no security
+policies telling it WHO can upload/view/delete images.
+
+This is a security feature - we just need to tell Supabase:
+"Let authenticated users upload their images"
+
+==============================================================
+
+Need help? Check these files:
+- scripts/setup-marketplace-storage-policies.sql (same SQL)
+- SETUP_STORAGE_NOW.md (detailed guide)
+- scripts/STORAGE_POLICIES_GUIDE.md (step-by-step)

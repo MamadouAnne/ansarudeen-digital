@@ -9,7 +9,7 @@ export interface MarketplaceItem {
   seller_name: string;
   seller_phone: string;
   seller_whatsapp?: string;
-  image: string;
+  images: string[]; // Array of image URLs (up to 6)
   location: string;
   created_at: string;
   featured?: boolean;

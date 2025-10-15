@@ -1,0 +1,59 @@
+╔═══════════════════════════════════════════════════════════════╗
+║        FIX: Could not find 'images' column error             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+PROBLEM:
+Your database has the OLD table with 'image' (singular)
+But the app is trying to use 'images' (plural array)
+
+SOLUTION: Run this SQL in Supabase SQL Editor
+
+==============================================================
+                      COPY THIS SQL
+==============================================================
+
+-- Add images column as array
+ALTER TABLE marketplace_items
+ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';
+
+-- Migrate existing data from 'image' to 'images'
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'marketplace_items' AND column_name = 'image'
+  ) THEN
+    UPDATE marketplace_items
+    SET images = ARRAY[image]
+    WHERE image IS NOT NULL AND image != '';
+
+    ALTER TABLE marketplace_items DROP COLUMN image;
+  END IF;
+END $$;
+
+-- Make images required
+ALTER TABLE marketplace_items
+ALTER COLUMN images SET NOT NULL,
+ALTER COLUMN images SET DEFAULT '{}';
+
+-- Refresh schema cache
+NOTIFY pgrst, 'reload schema';
+
+==============================================================
+
+STEPS:
+1. Go to Supabase Dashboard → SQL Editor
+2. Paste the SQL above
+3. Click "Run"
+4. Wait for "Success" message
+5. Try uploading in app again - it will work! ✅
+
+==============================================================
+
+This will:
+✅ Add the new 'images' array column
+✅ Copy any existing image data to the array
+✅ Remove the old 'image' column
+✅ Refresh the schema cache
+
+After this, your app will be able to upload multiple images!
