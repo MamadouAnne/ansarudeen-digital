@@ -489,6 +489,18 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </Link>
 
+            {/* Marketplace Card */}
+            <TouchableOpacity
+              className="bg-white rounded-2xl p-3 border-2 border-violet-100 shadow-sm mr-3 w-28"
+              onPress={() => router.push('/marketplace')}
+            >
+              <View className="w-10 h-10 bg-violet-100 rounded-xl items-center justify-center mb-1.5">
+                <Text className="text-xl">🛍️</Text>
+              </View>
+              <Text className="text-slate-800 font-bold text-xs mb-0.5">Marketplace</Text>
+              <Text className="text-slate-500 text-xs">Shop</Text>
+            </TouchableOpacity>
+
             {/* News/Blog Card */}
             <Link href="/news/" asChild>
               <TouchableOpacity className="bg-white rounded-2xl p-3 border-2 border-emerald-100 shadow-sm mr-3 w-28">
