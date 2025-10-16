@@ -8,141 +8,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MarketplaceItem } from '@/types/marketplace';
 import { supabase } from '@/lib/supabase';
 import { useState, useEffect } from 'react';
-
-// This would come from a database in production (DEPRECATED - now using Supabase)
-const _getMarketplaceItemById_DEPRECATED = (id: string): MarketplaceItem | null => {
-  const items: MarketplaceItem[] = [
-    {
-      id: 1,
-      title: 'Quran with Tafsir - Deluxe Edition',
-      title_arabic: 'القرآن الكريم مع التفسير',
-      description: 'Beautiful hardcover Quran with detailed Tafsir in Arabic and English. Includes translation by Saheeh International. This deluxe edition features high-quality paper, clear typography, and a durable leather-bound cover. Perfect for daily reading and study.',
-      price: 45,
-      category: 'books',
-      condition: 'new',
-      seller_name: 'Ibrahim Hassan',
-      seller_phone: '+1234567890',
-      seller_whatsapp: '+1234567890',
-      images: ['https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=800&h=600&fit=crop'],
-      location: 'New York, NY',
-      created_at: '2024-01-10T10:00:00Z',
-      featured: true,
-    },
-    {
-      id: 2,
-      title: 'Islamic Prayer Rug - Turkish Design',
-      title_arabic: 'سجادة صلاة إسلامية',
-      description: 'Premium quality Turkish prayer mat with beautiful geometric patterns. Soft, durable, and easy to fold. Made from high-quality materials that are comfortable for long prayers. Features non-slip backing for safety.',
-      price: 35,
-      category: 'prayer_items',
-      condition: 'new',
-      seller_name: 'Fatima Ahmed',
-      seller_phone: '+1234567891',
-      seller_whatsapp: '+1234567891',
-      images: ['https://images.unsplash.com/photo-1584286595398-a59f876a3e21?w=800&h=600&fit=crop'],
-      location: 'Chicago, IL',
-      created_at: '2024-01-09T14:30:00Z',
-      featured: true,
-    },
-    {
-      id: 3,
-      title: 'Men\'s Thobe - White Cotton',
-      title_arabic: 'ثوب رجالي قطني',
-      description: 'Classic white cotton thobe, perfect for daily prayers and special occasions. Size: Large. Made from breathable 100% cotton fabric. Features traditional design with modern tailoring for comfort.',
-      price: 55,
-      category: 'clothing',
-      condition: 'like_new',
-      seller_name: 'Mohammed Ali',
-      seller_phone: '+1234567892',
-      images: ['https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800&h=600&fit=crop'],
-      location: 'Houston, TX',
-      created_at: '2024-01-08T09:15:00Z',
-    },
-    {
-      id: 4,
-      title: 'Tasbih Prayer Beads - 99 Beads',
-      title_arabic: 'مسبحة ٩٩ حبة',
-      description: 'Handcrafted wooden tasbih with 99 beads. Perfect for dhikr and meditation. Each bead is carefully carved and polished. Includes a beautiful tassel and comes with a protective pouch.',
-      price: 15,
-      category: 'accessories',
-      condition: 'new',
-      seller_name: 'Aisha Rahman',
-      seller_phone: '+1234567893',
-      seller_whatsapp: '+1234567893',
-      images: ['https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=800&h=600&fit=crop'],
-      location: 'Los Angeles, CA',
-      created_at: '2024-01-07T16:45:00Z',
-      featured: true,
-    },
-    {
-      id: 5,
-      title: 'Islamic Wall Art - Ayatul Kursi',
-      title_arabic: 'لوحة آية الكرسي',
-      description: 'Modern Islamic calligraphy wall art featuring Ayatul Kursi. Gold foil on black canvas. Size: 24x36 inches. Ready to hang with included hardware. Adds elegant Islamic touch to any room.',
-      price: 75,
-      category: 'home_decor',
-      condition: 'new',
-      seller_name: 'Yusuf Omar',
-      seller_phone: '+1234567894',
-      images: ['https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&h=600&fit=crop'],
-      location: 'Miami, FL',
-      created_at: '2024-01-06T11:20:00Z',
-    },
-    {
-      id: 6,
-      title: 'Sahih Bukhari - Complete Set',
-      title_arabic: 'صحيح البخاري - طقم كامل',
-      description: 'Complete 9-volume set of Sahih Bukhari in Arabic with English translation. Authentic Hadith collection compiled by Imam Bukhari. Includes detailed commentary and indexing. Excellent condition with minimal wear.',
-      price: 120,
-      category: 'books',
-      condition: 'good',
-      seller_name: 'Zayd Abdullah',
-      seller_phone: '+1234567895',
-      seller_whatsapp: '+1234567895',
-      images: ['https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&h=600&fit=crop'],
-      location: 'Dallas, TX',
-      created_at: '2024-01-05T13:00:00Z',
-    },
-    {
-      id: 7,
-      title: 'Women\'s Hijab - Premium Silk',
-      title_arabic: 'حجاب حريري فاخر',
-      description: 'Elegant silk hijab in emerald green. Lightweight, breathable, and wrinkle-resistant. Perfect for all seasons. Measures 70x180cm. Made from 100% pure silk for luxurious feel and drape.',
-      price: 25,
-      category: 'clothing',
-      condition: 'new',
-      seller_name: 'Maryam Said',
-      seller_phone: '+1234567896',
-      images: ['https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&h=600&fit=crop'],
-      location: 'Boston, MA',
-      created_at: '2024-01-04T10:30:00Z',
-    },
-    {
-      id: 8,
-      title: 'Digital Azan Clock',
-      title_arabic: 'ساعة أذان رقمية',
-      description: 'Automatic prayer time clock with azan alarm for all 5 daily prayers. Includes Qibla compass and automatic location-based prayer times. Features LED display, adjustable volume, and battery backup. Easy to program and use.',
-      price: 40,
-      category: 'prayer_items',
-      condition: 'like_new',
-      seller_name: 'Bilal Hussein',
-      seller_phone: '+1234567897',
-      seller_whatsapp: '+1234567897',
-      images: ['https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=800&h=600&fit=crop'],
-      location: 'Seattle, WA',
-      created_at: '2024-01-03T15:45:00Z',
-    },
-  ];
-
-  return items.find(item => item.id === parseInt(id)) || null;
-};
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function MarketplaceItemDetailScreen() {
   const colorScheme = useColorScheme();
   const { id } = useLocalSearchParams();
+  const { user } = useAuth();
   const [item, setItem] = useState<MarketplaceItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  // Check if user is admin (only admins can edit marketplace items)
+  const isAdmin = user?.profile?.role === 'admin';
 
   // Fetch item from Supabase
   useEffect(() => {
@@ -271,6 +148,15 @@ export default function MarketplaceItemDetailScreen() {
           <IconSymbol name="chevron.left" size={24} color={Colors[colorScheme ?? 'light'].tint} />
           <Text style={[styles.backText, { color: Colors[colorScheme ?? 'light'].tint }]}>Back</Text>
         </TouchableOpacity>
+        {isAdmin && (
+          <TouchableOpacity
+            onPress={() => router.push(`/marketplace/edit-item/${id}`)}
+            style={[styles.editButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+          >
+            <IconSymbol name="pencil" size={18} color="#FFFFFF" />
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView style={styles.detailContainer} showsVerticalScrollIndicator={false}>
@@ -441,6 +327,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
@@ -452,6 +341,19 @@ const styles = StyleSheet.create({
   backText: {
     fontSize: 17,
     fontWeight: '600',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  editButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   detailContainer: {
     flex: 1,

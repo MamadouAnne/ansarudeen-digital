@@ -6,6 +6,7 @@ export interface MarketplaceItem {
   price: number;
   category: 'books' | 'clothing' | 'accessories' | 'prayer_items' | 'home_decor' | 'other';
   condition: 'new' | 'like_new' | 'good' | 'fair';
+  seller_id: string; // UUID of the seller from auth.users
   seller_name: string;
   seller_phone: string;
   seller_whatsapp?: string;

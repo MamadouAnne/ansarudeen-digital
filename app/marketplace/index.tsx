@@ -7,15 +7,20 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { router, Stack } from 'expo-router';
 import { MarketplaceItem, MarketplaceCategory } from '@/types/marketplace';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function MarketplaceScreen() {
   const colorScheme = useColorScheme();
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [categories, setCategories] = useState<MarketplaceCategory[]>([
     { id: 'all', name: 'All Items', name_arabic: 'الكل', icon: '📦', color: '#059669' },
   ]);
   const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Check if user is admin
+  const isAdmin = user?.profile?.role === 'admin';
 
   // Fetch categories from Supabase
   useEffect(() => {
@@ -232,12 +237,14 @@ export default function MarketplaceScreen() {
             سوق إسلامي
           </Text>
         </View>
-        <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
-          onPress={() => router.push('/marketplace/add-item')}
-        >
-          <IconSymbol name="plus" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        {isAdmin && (
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+            onPress={() => router.push('/marketplace/add-item')}
+          >
+            <IconSymbol name="plus" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Categories */}

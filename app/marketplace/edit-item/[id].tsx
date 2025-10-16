@@ -4,33 +4,25 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useState, useEffect } from 'react';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { MarketplaceCategory } from '@/types/marketplace';
+import { MarketplaceCategory, MarketplaceItem } from '@/types/marketplace';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadMultipleImages } from '@/lib/imageUpload';
+import { uploadMultipleImages, deleteImageFromSupabase } from '@/lib/imageUpload';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function AddMarketplaceItemScreen() {
+export default function EditMarketplaceItemScreen() {
   const colorScheme = useColorScheme();
+  const { id } = useLocalSearchParams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetchingItem, setFetchingItem] = useState(true);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState<MarketplaceCategory[]>([]);
+  const [originalItem, setOriginalItem] = useState<MarketplaceItem | null>(null);
 
   // Check if user is admin
   const isAdmin = user?.profile?.role === 'admin';
-
-  // Redirect non-admin users
-  useEffect(() => {
-    if (user && !isAdmin) {
-      Alert.alert(
-        'Access Denied',
-        'Only administrators can add marketplace items.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
-    }
-  }, [user, isAdmin]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -40,6 +32,7 @@ export default function AddMarketplaceItemScreen() {
   const [category, setCategory] = useState('');
   const [condition, setCondition] = useState<'new' | 'like_new' | 'good' | 'fair'>('new');
   const [images, setImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<string[]>([]); // Newly picked images (local URIs)
   const [location, setLocation] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
 
@@ -49,6 +42,52 @@ export default function AddMarketplaceItemScreen() {
     { id: 'good', label: 'Good', color: '#F59E0B' },
     { id: 'fair', label: 'Fair', color: '#EF4444' },
   ];
+
+  // Fetch item data
+  useEffect(() => {
+    async function fetchItem() {
+      if (!id) return;
+
+      setFetchingItem(true);
+      const { data, error } = await supabase
+        .from('marketplace_items')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching item:', error);
+        Alert.alert('Error', 'Failed to load item');
+        router.back();
+        return;
+      }
+
+      if (data) {
+        // Check if current user is admin
+        if (!isAdmin) {
+          Alert.alert('Error', 'Only administrators can edit marketplace items');
+          router.back();
+          return;
+        }
+
+        const item = data as MarketplaceItem;
+        setOriginalItem(item);
+        setTitle(item.title);
+        setTitleArabic(item.title_arabic);
+        setDescription(item.description);
+        setPrice(item.price.toString());
+        setCategory(item.category);
+        setCondition(item.condition);
+        setImages(item.images || []);
+        setLocation(item.location);
+        setWhatsapp(item.seller_whatsapp || '');
+      }
+
+      setFetchingItem(false);
+    }
+
+    fetchItem();
+  }, [id]);
 
   // Fetch categories
   useEffect(() => {
@@ -60,19 +99,16 @@ export default function AddMarketplaceItemScreen() {
 
       if (!error && data) {
         setCategories(data);
-        if (data.length > 0) {
-          setCategory(data[0].id);
-        }
       }
     }
 
     fetchCategories();
   }, []);
 
-  // Image picker functions
   const pickImage = async () => {
-    if (images.length >= 6) {
-      Alert.alert('Maximum reached', 'You can only add up to 6 images');
+    const totalImages = images.length + newImages.length;
+    if (totalImages >= 6) {
+      Alert.alert('Maximum reached', 'You can only have up to 6 images');
       return;
     }
 
@@ -84,12 +120,30 @@ export default function AddMarketplaceItemScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setImages([...images, result.assets[0].uri]);
+      setNewImages([...newImages, result.assets[0].uri]);
     }
   };
 
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
+  const removeExistingImage = async (index: number) => {
+    const imageUrl = images[index];
+    Alert.alert(
+      'Remove Image',
+      'Are you sure you want to remove this image?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            setImages(images.filter((_, i) => i !== index));
+          },
+        },
+      ]
+    );
+  };
+
+  const removeNewImage = (index: number) => {
+    setNewImages(newImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -106,7 +160,7 @@ export default function AddMarketplaceItemScreen() {
       Alert.alert('Error', 'Please enter a valid price');
       return;
     }
-    if (images.length === 0) {
+    if (images.length + newImages.length === 0) {
       Alert.alert('Error', 'Please add at least one image');
       return;
     }
@@ -118,78 +172,62 @@ export default function AddMarketplaceItemScreen() {
     setLoading(true);
 
     try {
-      // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        Alert.alert('Error', 'You must be logged in to add items');
+        Alert.alert('Error', 'You must be logged in to edit items');
         setLoading(false);
         return;
       }
 
-      // Get user profile data for seller info
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, phone')
-        .eq('user_id', user.id)
-        .single();
+      // Upload new images if any
+      let uploadedUrls: string[] = [];
+      if (newImages.length > 0) {
+        setUploadingImages(true);
+        uploadedUrls = await uploadMultipleImages(newImages, user.id);
+        setUploadingImages(false);
 
-      if (profileError || !profile) {
-        Alert.alert('Error', 'Could not fetch your profile information');
-        setLoading(false);
-        return;
+        if (uploadedUrls.length < newImages.length) {
+          console.warn(`Some images failed to upload. ${uploadedUrls.length}/${newImages.length} succeeded`);
+        }
       }
 
-      const sellerName = `${profile.first_name} ${profile.last_name}`;
-      const sellerPhone = profile.phone || '';
+      // Combine existing and new images
+      const allImages = [...images, ...uploadedUrls];
 
-      // Upload images to Supabase storage
-      setUploadingImages(true);
-      console.log('Uploading images to Supabase...');
-
-      const uploadedUrls = await uploadMultipleImages(images, user.id);
-
-      setUploadingImages(false);
-
-      if (uploadedUrls.length === 0) {
+      if (allImages.length === 0) {
         Alert.alert('Error', 'Failed to upload images. Please try again.');
         setLoading(false);
         return;
       }
 
-      if (uploadedUrls.length < images.length) {
-        console.warn(`Some images failed to upload. ${uploadedUrls.length}/${images.length} succeeded`);
-      }
-
-      // Insert marketplace item
-      const { error: insertError } = await supabase
+      // Update marketplace item
+      const { error: updateError } = await supabase
         .from('marketplace_items')
-        .insert({
+        .update({
           title: title.trim(),
           title_arabic: titleArabic.trim() || title.trim(),
           description: description.trim(),
           price: parseFloat(price),
           category,
           condition,
-          seller_id: user.id,
-          seller_name: sellerName,
-          seller_phone: sellerPhone,
-          seller_whatsapp: whatsapp.trim() || sellerPhone,
-          images: uploadedUrls, // Array of uploaded image URLs
+          seller_whatsapp: whatsapp.trim() || originalItem?.seller_phone || '',
+          images: allImages,
           location: location.trim(),
-          featured: false,
-        });
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        Alert.alert('Error', 'Failed to add item. Please try again.');
+      if (updateError) {
+        console.error('Update error:', updateError);
+        Alert.alert('Error', 'Failed to update item. Please try again.');
         setLoading(false);
         return;
       }
 
       Alert.alert(
         'Success',
-        'Your item has been added to the marketplace!',
+        'Your item has been updated!',
         [
           {
             text: 'OK',
@@ -198,12 +236,26 @@ export default function AddMarketplaceItemScreen() {
         ]
       );
     } catch (error) {
-      console.error('Error adding item:', error);
+      console.error('Error updating item:', error);
       Alert.alert('Error', 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  if (fetchingItem) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />
+          <Text style={[styles.loadingText, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
+            Loading item...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
@@ -217,10 +269,10 @@ export default function AddMarketplaceItemScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={[styles.headerTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
-            Add Item
+            Edit Item
           </Text>
           <Text style={[styles.headerSubtitle, { color: Colors[colorScheme ?? 'light'].tabIconDefault }]}>
-            إضافة منتج
+            تعديل المنتج
           </Text>
         </View>
         <View style={{ width: 80 }} />
@@ -251,7 +303,7 @@ export default function AddMarketplaceItemScreen() {
           />
         </View>
 
-        {/* Title Arabic (Optional) */}
+        {/* Title Arabic */}
         <View style={styles.formGroup}>
           <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
             Title (Arabic)
@@ -409,12 +461,13 @@ export default function AddMarketplaceItemScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.imagesContainer}
           >
+            {/* Existing images */}
             {images.map((uri, index) => (
-              <View key={index} style={styles.imageWrapper}>
+              <View key={`existing-${index}`} style={styles.imageWrapper}>
                 <Image source={{ uri }} style={styles.imagePreview} />
                 <TouchableOpacity
                   style={styles.removeImageButton}
-                  onPress={() => removeImage(index)}
+                  onPress={() => removeExistingImage(index)}
                 >
                   <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
                 </TouchableOpacity>
@@ -426,7 +479,24 @@ export default function AddMarketplaceItemScreen() {
               </View>
             ))}
 
-            {images.length < 6 && (
+            {/* New images */}
+            {newImages.map((uri, index) => (
+              <View key={`new-${index}`} style={styles.imageWrapper}>
+                <Image source={{ uri }} style={styles.imagePreview} />
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => removeNewImage(index)}
+                >
+                  <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
+                </TouchableOpacity>
+                <View style={styles.newBadge}>
+                  <Text style={styles.newBadgeText}>New</Text>
+                </View>
+              </View>
+            ))}
+
+            {/* Add button */}
+            {(images.length + newImages.length) < 6 && (
               <TouchableOpacity
                 style={[
                   styles.addImageButton,
@@ -466,7 +536,7 @@ export default function AddMarketplaceItemScreen() {
           />
         </View>
 
-        {/* WhatsApp (Optional) */}
+        {/* WhatsApp */}
         <View style={styles.formGroup}>
           <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
             WhatsApp Number (Optional)
@@ -503,14 +573,14 @@ export default function AddMarketplaceItemScreen() {
           disabled={loading}
         >
           {loading ? (
-            <View style={styles.loadingContainer}>
+            <View style={styles.loadingButtonContainer}>
               <ActivityIndicator color="#FFFFFF" />
               {uploadingImages && (
                 <Text style={styles.uploadingText}>Uploading images...</Text>
               )}
             </View>
           ) : (
-            <Text style={styles.submitButtonText}>Add to Marketplace</Text>
+            <Text style={styles.submitButtonText}>Update Item</Text>
           )}
         </TouchableOpacity>
 
@@ -649,6 +719,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
   },
+  newBadge: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  newBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
   addImageButton: {
     width: 140,
     height: 140,
@@ -680,7 +765,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  loadingContainer: {
+  loadingButtonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -689,5 +774,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 16,
   },
 });

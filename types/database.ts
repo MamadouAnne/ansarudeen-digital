@@ -213,6 +213,88 @@ export interface Database {
           updated_at?: string | null;
         };
       };
+      marketplace_categories: {
+        Row: {
+          id: string;
+          name: string;
+          name_arabic: string;
+          icon: string;
+          color: string;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          name_arabic: string;
+          icon: string;
+          color: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          name_arabic?: string;
+          icon?: string;
+          color?: string;
+          created_at?: string;
+        };
+      };
+      marketplace_items: {
+        Row: {
+          id: number;
+          title: string;
+          title_arabic: string;
+          description: string;
+          price: number;
+          category: string;
+          condition: 'new' | 'like_new' | 'good' | 'fair';
+          seller_id: string;
+          seller_name: string;
+          seller_phone: string;
+          seller_whatsapp: string | null;
+          images: string[];
+          location: string;
+          featured: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          title: string;
+          title_arabic: string;
+          description: string;
+          price: number;
+          category: string;
+          condition: 'new' | 'like_new' | 'good' | 'fair';
+          seller_id: string;
+          seller_name: string;
+          seller_phone: string;
+          seller_whatsapp?: string | null;
+          images: string[];
+          location: string;
+          featured?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          title?: string;
+          title_arabic?: string;
+          description?: string;
+          price?: number;
+          category?: string;
+          condition?: 'new' | 'like_new' | 'good' | 'fair';
+          seller_id?: string;
+          seller_name?: string;
+          seller_phone?: string;
+          seller_whatsapp?: string | null;
+          images?: string[];
+          location?: string;
+          featured?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Functions: {};
   };
